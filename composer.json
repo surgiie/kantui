@@ -1,0 +1,37 @@
+{
+  "name": "surgiie/kantui",
+  "type": "project",
+  "description": "A minimal transparent php kanban TUI with vim-like keybindings.",
+  "keywords": [
+    "tui",
+    "kanban",
+    "todo",
+    "php"
+  ],
+  "bin": [
+    "bin/kantui"
+  ],
+  "license": "MIT",
+  "require": {
+    "php": "^8.3",
+    "php-tui/php-tui": "^0.2.1",
+    "illuminate/support": "^11.42",
+    "laravel/prompts": "^0.3.4",
+    "illuminate/pagination": "^11.42",
+    "ramsey/uuid": "^4.7",
+    "amphp/amp": "^3.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Kantui\\": "src/"
+    },
+    "files": [
+      "./src/helpers.php"
+    ]
+  },
+  "require-dev": {
+    "symfony/var-dumper": "^7.2",
+    "laravel/pint": "^1.20",
+    "fakerphp/faker": "^1.24"
+  }
+}
