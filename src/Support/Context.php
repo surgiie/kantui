@@ -3,6 +3,7 @@
 namespace Kantui\Support;
 
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 use function Kantui\kantui_path;
 
@@ -38,6 +39,11 @@ class Context
             // global config
         } elseif (is_file($configPath = kantui_path('/config.json'))) {
             $config = json_decode(file_get_contents($configPath), true);
+        }
+
+        if (is_null($config)) {
+            $message = json_last_error_msg();
+            throw new RuntimeException("Invalid json: $message");
         }
 
         $this->config = Collection::make($config);

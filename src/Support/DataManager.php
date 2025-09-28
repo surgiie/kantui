@@ -135,6 +135,32 @@ class DataManager
         $this->writeTodos();
     }
 
+    /** Edit the active todo item interactively. */
+    public function editInteractively(): void
+    {
+        $activeTodo = $this->getActiveTodo();
+        if (! $activeTodo) {
+            return;
+        }
+        info('Edit the todo:');
+        $title = text('Title:', default: $activeTodo->title);
+        $description = textarea('Description:', default: $activeTodo->description, required: true);
+        $urgency = select(
+            label: 'Urgency:',
+            options: [
+                'low' => 'LOW',
+                'normal' => 'NORMAL',
+                'important' => 'IMPORTANT',
+                'urgent' => 'URGENT',
+            ],
+            default: $activeTodo->urgency
+        );
+        $activeTodo->title = $title;
+        $activeTodo->description = $description;
+        $activeTodo->urgency = $urgency;
+        $this->writeTodos();
+    }
+
     /**
      * Create a new todo item and save it to the data file.
      */
@@ -194,10 +220,6 @@ class DataManager
         $page = $cursor->page();
 
         $todos = Collection::make($this->todos[$type->value])->paginate(static::PAGINATE_BY, $page);
-
-        $todos->sortBy(
-            fn ($todo) => $todo->created_at
-        );
 
         return $todos;
     }
