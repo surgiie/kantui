@@ -46,6 +46,7 @@ class DataManager
     {
         $this->todos = $this->loadTodos();
     }
+
     /**
      * Get the default data for the todos.
      */
@@ -109,6 +110,29 @@ class DataManager
     public function getActiveIndex(): int
     {
         return $this->activeIndex;
+    }
+
+    /**Reposition active item by the given number of index counts. */
+    public function repositionActiveItem(int $offset): void
+    {
+        $activeTodo = $this->getActiveTodo();
+        $type = $activeTodo->type->value;
+        if (! $activeTodo) {
+            return;
+        }
+
+        $typeTodos = &$this->todos[$type];
+        $currentIndex = array_search($activeTodo->id, array_column($typeTodos, 'id'));
+        $newIndex = $currentIndex + ($offset);
+        if ($newIndex < 0 || $newIndex >= count($typeTodos)) {
+            return;
+        }
+        // Swap the items
+        [$typeTodos[$currentIndex], $typeTodos[$newIndex]] = [$typeTodos[$newIndex], $typeTodos[$currentIndex]];
+        // reindex the items array so we save new positions
+        $this->todos[$activeTodo->type->value] = array_values($typeTodos);
+        $this->activeIndex = $newIndex;
+        $this->writeTodos();
     }
 
     /**

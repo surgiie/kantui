@@ -6,11 +6,9 @@ A minimal transparent php kanban TUI with vim-like keybindings.
 ![kantui overview](https://i.imgur.com/lIZv28L.png)
 
 
-**Inspired By**: [skan](https://github.com/ckipp01/skan)(now archived).
-
 ## Installation
 
-Install with composer locally or globally and add appropriate paths to your $PATH environment variable:
+Install with composer locally or globally and add appropriate paths to your `$PATH` environment variable:
 
 ```bash
 composer require surgiie/kantui
@@ -55,7 +53,7 @@ If you don't have or want to install php, you can run use the provided docker sc
 
 ```bash
 # Assumes $PATH includes $HOME/.local/bin, add or customize as needed
-desired_version=0.1.0 && wget -qO $HOME/.local/bin/kantui https://raw.githubusercontent.com/surgiie/kantui/refs/tags/v$desired_version/docker && chmod +x $HOME/.local/bin/kantui
+desired_version=0.2.0 && wget -qO $HOME/.local/bin/kantui https://raw.githubusercontent.com/surgiie/kantui/refs/tags/v$desired_version/docker && chmod +x $HOME/.local/bin/kantui
 ```
 
 ```bash

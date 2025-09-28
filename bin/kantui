@@ -1,34 +1,35 @@
 #!/usr/bin/env php
 <?php
+
 use Kantui\App;
 use Kantui\Support\Context;
 
 use function Laravel\Prompts\error;
-require file_exists(__DIR__ . "/../../../autoload.php") ? __DIR__ . "/../../../autoload.php" : __DIR__ . "/../vendor/autoload.php";
+
+require file_exists(__DIR__.'/../../../autoload.php') ? __DIR__.'/../../../autoload.php' : __DIR__.'/../vendor/autoload.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
     if ($severity != E_WARNING) {
         return;
     }
     // force all warnings to be exceptions
-    throw new RuntimeException($message . " in ". $file. " at line: " . $line);
+    throw new RuntimeException($message.' in '.$file.' at line: '.$line);
 });
 
-const KANTUI_VERSION = "0.1.0";
+const KANTUI_VERSION = '0.2.0';
 
-$context = new Context(getenv("KANTUI_CONTEXT") ?: "default");
+$context = new Context(getenv('KANTUI_CONTEXT') ?: 'default');
 
 $context->ensureDefaults();
 
 $app = new App($context, KANTUI_VERSION);
-try{
+try {
     exit($app->run());
-} catch(Exception $e) {
-    if(filter_var(getenv("KANTUI_DEBUG"), FILTER_VALIDATE_BOOLEAN)) {
+} catch (Exception $e) {
+    if (filter_var(getenv('KANTUI_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
         throw $e;
-    } else{
-        error("ERROR: ". $e->getMessage() . PHP_EOL);
+    } else {
+        error('ERROR: '.$e->getMessage().PHP_EOL);
         exit(1);
     }
 }
-
