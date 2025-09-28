@@ -1,27 +1,26 @@
 <?php
+
 // utility script for generating data to test the application
 
 use Kantui\Support\Context;
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 
-
-# generate data
+// generate data
 $faker = Faker\Factory::create();
 $todoTypes = ['todo', 'in_progress'];
 $todos = [];
 
-$context = $argv[1] ?? "";
-if (!$context) {
+$context = $argv[1] ?? '';
+if (! $context) {
     echo "Please provide a context. usage: php generate.php <context>\n";
     exit(1);
 }
 
-
 $context = new Context($context);
 // prevent overwriting existing data
 $isForce = in_array('--force', $argv);
-if(!$isForce && file_exists($path = $context->path('data.json'))) {
+if (! $isForce && file_exists($path = $context->path('data.json'))) {
     echo "Data already exists. Skipping generation. Remove $path to regenerate or use --force\n";
     exit(1);
 }

@@ -392,6 +392,16 @@ class App
                         $this->moveCursorRight();
                     }
 
+                    if ($event->char === '[' && ! is_null($this->activeType)) {
+                        $this->manager->repositionActiveItem(-1);
+                        $this->moveCursorUp();
+                    }
+                    // move current item to next position and reindex items
+                    if ($event->char == ']' && ! is_null($this->activeType)) {
+                        $this->manager->repositionActiveItem(1);
+                        $this->moveCursorDown();
+                    }
+
                     if ($event->char === 'x' && ! is_null($this->activeType)) {
                         $activeTodo = $this->manager->getActiveTodo();
                         $lastIndex = $this->manager->getActiveIndex();
@@ -409,7 +419,7 @@ class App
                             }
 
                             // if the last index is 0 and there are items on the current page, focus on the next item.
-                            if($lastIndex === 0 && $items->count() > 0) {
+                            if ($lastIndex === 0 && $items->count() > 0) {
                                 $this->resetCursor($this->activeType, index: 0, page: $cursor->page());
                                 break;
                             }
@@ -556,7 +566,7 @@ class App
                     ),
                 ParagraphWidget::fromText(
                     Text::fromString(
-                        '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | n (new) | x (delete) | q (quit)'
+                        '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | [ (move item up) | ] (move item down) | n (new) | x (delete) | q (quit)'
                     )
                 )->alignment(HorizontalAlignment::Right)->style($this->getStyle())
             );

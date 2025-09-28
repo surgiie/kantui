@@ -19,17 +19,17 @@ if (! function_exists('kantui_path')) {
 
         if (getenv('KANTUI_HOME')) {
             $base = getenv('KANTUI_HOME');
-        } else if(function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
+        } elseif (function_exists('posix_getpwuid') && function_exists('posix_geteuid')) {
             $base = posix_getpwuid(posix_geteuid())['dir'];
             $base = "$base/.kantui";
-        } else if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN'){
+        } elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $base = getenv('USERPROFILE');
             $base = "$base/.kantui";
         }
 
         $path = "$base/$path";
 
-        return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+        return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
     }
 }
 
