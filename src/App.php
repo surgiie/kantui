@@ -375,6 +375,18 @@ class App
                         };
                         break 2;
                     }
+                    if ($event->char == 'e' && ! is_null($this->activeType)) {
+                        $action = function () {
+                            $this->manager->editInteractively();
+                            clear();
+                            $app = new self($this->context, $this->version);
+                            $app->setActiveType($this->activeType);
+                            $app->setCursor($this->activeType, $this->getCursor($this->activeType));
+
+                            return $app->run();
+                        };
+                        break 2;
+                    }
 
                     if ($event->char === 'j') {
                         $this->moveCursorDown();
@@ -514,17 +526,15 @@ class App
         static::$terminal->execute(Actions::alternateScreenDisable());
         static::$terminal->execute(Actions::disableMouseCapture());
 
-        if (! is_null($action)) {
-            $result = $action();
-
-            $action = null;
-
-            if (is_null($result)) {
-                return $result;
-            }
+        if (is_null($action)) {
+            return 0;
         }
 
+        $result = $action();
+        $action = null;
+
         return 0;
+
     }
 
     /**
@@ -566,7 +576,7 @@ class App
                     ),
                 ParagraphWidget::fromText(
                     Text::fromString(
-                        '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | [ (move item up) | ] (move item down) | n (new) | x (delete) | q (quit)'
+                        '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | [ (move item up) | ] (move item down) | n (new) | e (edit) | x (delete) | q (quit)'
                     )
                 )->alignment(HorizontalAlignment::Right)->style($this->getStyle())
             );
