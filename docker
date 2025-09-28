@@ -6,7 +6,7 @@ if [ -z "$(which docker)" ]; then
     exit 1
 fi
 
-version="0.1.0"
+version="${KANTUI_VERSION:-latest}"
 context="${KANTUI_CONTEXT:-default}"
 kantui_dir="${KANTUI_HOME:-$HOME/.kantui}"
 data_file="$kantui_dir/contexts/$context/data.json"
@@ -22,6 +22,12 @@ workspace="/tmp/.kantui-cli"
 mkdir -p $workspace
 
 cd $workspace
+
+if [ "$version" = "latest" ]; then
+    package="surgiie/kantui"
+else
+    package="surgiie/kantui:$version"
+fi
 
 cat >Dockerfile <<EOF
 FROM php:8.3-cli-alpine
@@ -42,7 +48,7 @@ RUN apk --no-cache update \\
     && chown -R kantui:kantui /app/
 
 USER kantui
-RUN composer require surgiie/kantui:$version
+RUN composer require $package
 ENV PATH=\$PATH:/app/vendor/bin
 
 EOF
@@ -62,7 +68,7 @@ cd - >/dev/null
 # Remove the workspace after we have built the docker image, these files are no longer needed.
 rm -rf $workspace
 
-start_container(){
+start_container() {
     # remove dangling containers that may have exited but still show up during docker ps -a
     docker ps -a | grep $container_name >/dev/null && docker rm $container_name >/dev/null
 
@@ -74,11 +80,11 @@ start_container(){
     clear
 }
 
-ensure_defaults(){
+ensure_defaults() {
     if [ ! -f "$data_file" ]; then
         mkdir -p "$kantui_dir/contexts/$context"
 
-cat >$data_file <<EOF
+        cat >$data_file <<EOF
 {
     "todo": [],
     "in_progress": [],
@@ -104,7 +110,6 @@ if [ ! -f "$data_file" ]; then
     start_container
 fi
 
-
 # determine the environment variables to pass to the container
 env_vars=""
 for var in $(env | grep '^KANTUI_'); do
@@ -128,4 +133,3 @@ if [ $? -ne 0 ]; then
     echo "Failed to run kantui"
     exit 1
 fi
-

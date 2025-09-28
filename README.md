@@ -52,13 +52,15 @@ If you don't have or want to install php, you can run use the provided docker sc
 ### Install Docker Script:
 
 ```bash
-# Assumes $PATH includes $HOME/.local/bin, add or customize as needed
-desired_version=0.2.0 && wget -qO $HOME/.local/bin/kantui https://raw.githubusercontent.com/surgiie/kantui/refs/tags/v$desired_version/docker && chmod +x $HOME/.local/bin/kantui
+mkdir $HOME/.local/bin # add to $PATH or customize install location.
+wget -qO $HOME/.local/bin/kantui https://raw.githubusercontent.com/surgiie/kantui/refs/heads/main/docker && chmod +x $HOME/.local/bin/kantui
 ```
 
 ```bash
 # start app. Image and container will be created if not already present
 kantui
+# if specific package version is desired, set the desired version as env and run script, new image/container will start.
+export KANTUI_VERSION="v0.1.0" && kantui
 
 # attach to the container and start a bash shell
 kantui --attach
