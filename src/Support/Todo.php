@@ -37,12 +37,12 @@ class Todo implements Arrayable
      */
     public function widget(bool $active = false): Widget
     {
-        $style = Style::default()->fg(RgbColor::fromRgb(...[255, 255, 255]));
+        $style = Style::default()->fg(RgbColor::fromRgb(255, 255, 255));
         $urgencyStyle = $this->getUrgencyStyle();
 
         if ($active) {
-            $style = $style->bg(RgbColor::fromRgb(...[33, 37, 41]));
-            $urgencyStyle = $urgencyStyle->bg(RgbColor::fromRgb(...[33, 37, 41]));
+            $style = $style->bg(RgbColor::fromRgb(33, 37, 41));
+            $urgencyStyle = $urgencyStyle->bg(RgbColor::fromRgb(33, 37, 41));
         }
 
         $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->config('timezone', date_default_timezone_get()));
@@ -91,21 +91,21 @@ class Todo implements Arrayable
      */
     protected function getUrgencyStyle(): Style
     {
-        $style = Style::default()->white();
+        $style = \Kantui\default_style();
 
         if ($this->urgency === 'urgent') {
-            return $style->fg(RgbColor::fromRgb(...[220, 53, 69]));
+            return $style->fg(RgbColor::fromRgb(220, 53, 69));
         }
 
         if ($this->urgency === 'important') {
-            return $style->fg(RgbColor::fromRgb(...[255, 193, 7]));
+            return $style->fg(RgbColor::fromRgb(255, 193, 7));
         }
 
         if ($this->urgency === 'normal') {
-            return $style->fg(RgbColor::fromRgb(...[46, 197, 70]));
+            return $style->fg(RgbColor::fromRgb(46, 197, 70));
         }
 
-        return $style->fg(RgbColor::fromRgb(...[164, 208, 216]));
+        return $style->fg(RgbColor::fromRgb(164, 208, 216));
     }
 
     /**

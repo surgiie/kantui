@@ -112,6 +112,17 @@ class App
         return static::$terminal;
     }
 
+    /**
+     * Cleanup and reset terminal to normal state.
+     */
+    public static function cleanupTerminal(): void
+    {
+        static::$terminal->disableRawMode();
+        static::$terminal->execute(Actions::cursorShow());
+        static::$terminal->execute(Actions::alternateScreenDisable());
+        static::$terminal->execute(Actions::disableMouseCapture());
+    }
+
     /** Set active type. */
     public function setActiveType(TodoType $type): void
     {
@@ -139,10 +150,7 @@ class App
 
             return $this->start();
         } catch (Throwable $err) {
-            static::$terminal->disableRawMode();
-            static::$terminal->execute(Actions::disableMouseCapture());
-            static::$terminal->execute(Actions::alternateScreenDisable());
-            static::$terminal->execute(Actions::cursorShow());
+            static::cleanupTerminal();
             static::$terminal->execute(Actions::clear(ClearType::All));
             throw $err;
         }
@@ -310,7 +318,7 @@ class App
             $index = $paginator->count() - 1;
             $page = $paginator->lastPage();
         }
-        $this->cursors[$type->value] = new Cursor($index, $page, $type);
+        $this->cursors[$type->value] = new Cursor($index, $page);
     }
 
     /**
@@ -345,11 +353,11 @@ class App
             $this->activeType = null;
         }
         if (! isset($this->cursors[TodoType::TODO->value])) {
-            $this->cursors[TodoType::TODO->value] = new Cursor(-1, 1, TodoType::TODO);
+            $this->cursors[TodoType::TODO->value] = new Cursor(-1, 1);
         }
 
         if (! isset($this->cursors[TodoType::IN_PROGRESS->value])) {
-            $this->cursors[TodoType::IN_PROGRESS->value] = new Cursor(-1, 1, TodoType::IN_PROGRESS);
+            $this->cursors[TodoType::IN_PROGRESS->value] = new Cursor(-1, 1);
         }
 
         while (true) {
@@ -521,10 +529,7 @@ class App
             delay(0.01);
         }
 
-        static::$terminal->disableRawMode();
-        static::$terminal->execute(Actions::cursorShow());
-        static::$terminal->execute(Actions::alternateScreenDisable());
-        static::$terminal->execute(Actions::disableMouseCapture());
+        static::cleanupTerminal();
 
         if (is_null($action)) {
             return 0;
@@ -542,7 +547,7 @@ class App
      */
     protected function getStyle(): Style
     {
-        return Style::default()->white();
+        return \Kantui\default_style();
     }
 
     /**

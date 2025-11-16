@@ -2,8 +2,8 @@
 
 namespace Kantui;
 
-use PhpTui\Term\Actions;
 use PhpTui\Term\Terminal;
+use PhpTui\Tui\Style\Style;
 use Symfony\Component\VarDumper\VarDumper;
 
 if (! function_exists('kantui_path')) {
@@ -43,6 +43,16 @@ if (! function_exists('terminal')) {
     }
 }
 
+if (! function_exists('default_style')) {
+    /**
+     * Get the default white style used throughout the application.
+     */
+    function default_style(): Style
+    {
+        return Style::default()->white();
+    }
+}
+
 if (! function_exists('dd')) {
 
     /**
@@ -50,11 +60,7 @@ if (! function_exists('dd')) {
      */
     function dd(mixed ...$vars): void
     {
-        $terminal = terminal();
-        $terminal->disableRawMode();
-        $terminal->execute(Actions::cursorShow());
-        $terminal->execute(Actions::alternateScreenDisable());
-        $terminal->execute(Actions::disableMouseCapture());
+        App::cleanupTerminal();
 
         if (array_key_exists(0, $vars) && count($vars) === 1) {
             VarDumper::dump($vars[0]);

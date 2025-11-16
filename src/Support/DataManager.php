@@ -100,10 +100,10 @@ class DataManager
     /** Get last page of given todo type. */
     public function getLastPageItems(TodoType $type): LengthAwarePaginator
     {
-        $paginated = $this->getByType($type, new Cursor(-1, 0, $type));
+        $paginated = $this->getByType($type, new Cursor(-1, 0));
         $lastPage = $paginated->lastPage();
 
-        return $this->getByType($type, new Cursor(-1, $lastPage), $type);
+        return $this->getByType($type, new Cursor(-1, $lastPage));
     }
 
     /** Get active index. */
@@ -307,7 +307,7 @@ class DataManager
         return BlockWidget::default()
             ->borders(Borders::ALL)
             ->titles(Title::fromString($title))
-            ->style(Style::default()->white())->widget(
+            ->style(\Kantui\default_style())->widget(
                 GridWidget::default()
                     ->direction(Direction::Vertical)
                     ->constraints(
