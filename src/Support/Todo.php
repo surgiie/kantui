@@ -5,6 +5,7 @@ namespace Kantui\Support;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Arrayable;
 use Kantui\Support\Enums\TodoType;
+use Kantui\Support\Enums\TodoUrgency;
 use PhpTui\Tui\Color\RgbColor;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\GridWidget;
@@ -28,7 +29,7 @@ class Todo implements Arrayable
         public string $title,
         public string $id,
         public string $description,
-        public string $urgency = 'normal',
+        public TodoUrgency $urgency = TodoUrgency::NORMAL,
         public string $created_at = '',
     ) {}
 
@@ -45,7 +46,7 @@ class Todo implements Arrayable
             $urgencyStyle = $urgencyStyle->bg(RgbColor::fromRgb(33, 37, 41));
         }
 
-        $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->config('timezone', date_default_timezone_get()));
+        $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->getTimezone());
 
         return BlockWidget::default()
             ->borders(Borders::ALL)
@@ -64,7 +65,7 @@ class Todo implements Arrayable
                             )->widgets(
                                 ParagraphWidget::fromText(
                                     Text::fromString(
-                                        mb_strtoupper($this->urgency)
+                                        $this->urgency->label()
                                     )
                                 )->style($urgencyStyle),
                                 ParagraphWidget::fromText(
@@ -93,19 +94,12 @@ class Todo implements Arrayable
     {
         $style = \Kantui\default_style();
 
-        if ($this->urgency === 'urgent') {
-            return $style->fg(RgbColor::fromRgb(220, 53, 69));
-        }
-
-        if ($this->urgency === 'important') {
-            return $style->fg(RgbColor::fromRgb(255, 193, 7));
-        }
-
-        if ($this->urgency === 'normal') {
-            return $style->fg(RgbColor::fromRgb(46, 197, 70));
-        }
-
-        return $style->fg(RgbColor::fromRgb(164, 208, 216));
+        return match ($this->urgency) {
+            TodoUrgency::URGENT => $style->fg(RgbColor::fromRgb(220, 53, 69)),
+            TodoUrgency::IMPORTANT => $style->fg(RgbColor::fromRgb(255, 193, 7)),
+            TodoUrgency::NORMAL => $style->fg(RgbColor::fromRgb(46, 197, 70)),
+            TodoUrgency::LOW => $style->fg(RgbColor::fromRgb(164, 208, 216)),
+        };
     }
 
     /**
@@ -117,7 +111,7 @@ class Todo implements Arrayable
             'type' => $this->type,
             'title' => $this->title,
             'description' => $this->description,
-            'urgency' => $this->urgency,
+            'urgency' => $this->urgency->value,
             'created_at' => $this->created_at,
         ];
     }

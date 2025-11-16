@@ -64,6 +64,14 @@ class Context
     }
 
     /**
+     * Get the timezone for the context.
+     */
+    public function getTimezone(): string
+    {
+        return $this->config('timezone', date_default_timezone_get());
+    }
+
+    /**
      * Make path relative to the context directory.
      */
     public function path(string $path = ''): string

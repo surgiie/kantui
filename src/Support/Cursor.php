@@ -4,6 +4,10 @@ namespace Kantui\Support;
 
 class Cursor
 {
+    public const INACTIVE = -1;
+
+    public const INITIAL_PAGE = 1;
+
     public function __construct(protected int $index, protected int $page) {}
 
     /** Get the current index. */

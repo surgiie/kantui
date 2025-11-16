@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 use Kantui\Support\Enums\TodoType;
+use Kantui\Support\Enums\TodoUrgency;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Layout\Constraint;
@@ -82,6 +83,7 @@ class DataManager
                 $todos[$type] = array_map(
                     function ($todo) use ($type) {
                         unset($todo['type']);
+                        $todo['urgency'] = TodoUrgency::from($todo['urgency']);
 
                         return new Todo(
                             $this->context,
@@ -100,10 +102,10 @@ class DataManager
     /** Get last page of given todo type. */
     public function getLastPageItems(TodoType $type): LengthAwarePaginator
     {
-        $paginated = $this->getByType($type, new Cursor(-1, 0));
+        $paginated = $this->getByType($type, new Cursor(Cursor::INACTIVE, 0));
         $lastPage = $paginated->lastPage();
 
-        return $this->getByType($type, new Cursor(-1, $lastPage));
+        return $this->getByType($type, new Cursor(Cursor::INACTIVE, $lastPage));
     }
 
     /** Get active index. */
@@ -148,16 +150,16 @@ class DataManager
         $urgency = select(
             label: 'Urgency:',
             options: [
-                'low' => 'LOW',
-                'normal' => 'NORMAL',
-                'important' => 'IMPORTANT',
-                'urgent' => 'URGENT',
+                TodoUrgency::LOW->value => TodoUrgency::LOW->label(),
+                TodoUrgency::NORMAL->value => TodoUrgency::NORMAL->label(),
+                TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
+                TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
             ],
-            default: $activeTodo->urgency
+            default: $activeTodo->urgency->value
         );
         $activeTodo->title = $title;
         $activeTodo->description = $description;
-        $activeTodo->urgency = $urgency;
+        $activeTodo->urgency = TodoUrgency::from($urgency);
         $this->writeTodos();
     }
 
@@ -175,16 +177,14 @@ class DataManager
         $urgency = select(
             label: 'Urgency:',
             options: [
-                'low' => 'LOW',
-                'normal' => 'NORMAL',
-                'important' => 'IMPORTANT',
-                'urgent' => 'URGENT',
+                TodoUrgency::LOW->value => TodoUrgency::LOW->label(),
+                TodoUrgency::NORMAL->value => TodoUrgency::NORMAL->label(),
+                TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
+                TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
             ]
         );
 
-        $created_at = Carbon::now(
-            $this->context->config('timezone', date_default_timezone_get())
-        )->toDateTimeString();
+        $created_at = Carbon::now($this->context->getTimezone())->toDateTimeString();
 
         $todo = new Todo(
             $this->context,
@@ -192,7 +192,7 @@ class DataManager
             id: Str::uuid()->toString(),
             title: $title,
             description: $description,
-            urgency: $urgency,
+            urgency: TodoUrgency::from($urgency),
             created_at: $created_at
         );
 
@@ -299,7 +299,7 @@ class DataManager
 
         $title = Str::replace('_', ' ', $type->name);
 
-        if ($currentIndex != -1) {
+        if ($currentIndex != Cursor::INACTIVE) {
             $current = ($currentIndex + 1) + (($cursor->page() - 1) * static::PAGINATE_BY);
             $title = "$title - {$current}/{$todos->total()}";
         }
