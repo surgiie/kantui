@@ -17,6 +17,7 @@ class ConfigValidator
      */
     private const SCHEMA = [
         'timezone' => 'string',
+        'delete_done' => 'boolean',
         'human_readable_date' => 'boolean',
     ];
 
@@ -33,8 +34,7 @@ class ConfigValidator
         foreach ($config as $key => $value) {
             if (! isset(self::SCHEMA[$key])) {
                 throw new RuntimeException(
-                    "Unknown configuration key: '{$key}'. Valid keys are: ".
-                    implode(', ', array_keys(self::SCHEMA))
+                    "Unknown configuration key: '{$key}'."
                 );
             }
 

@@ -2,9 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ main, dev ]
+    branches: [ main ]
 
 jobs:
   tests:
@@ -77,4 +78,4 @@ jobs:
         run: vendor/bin/pint --test
 
       - name: Run PHPStan (Static Analysis)
-        run: vendor/bin/phpstan analyse
+        run: vendor/bin/phpstan analyse src
