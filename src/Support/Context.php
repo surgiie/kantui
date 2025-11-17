@@ -10,6 +10,16 @@ use function Kantui\kantui_path;
 class Context
 {
     /**
+     * The filename for the configuration file.
+     */
+    private const CONFIG_FILE_NAME = 'config.json';
+
+    /**
+     * The filename for the data file.
+     */
+    private const DATA_FILE_NAME = 'data.json';
+
+    /**
      * The configuration for the context.
      **/
     protected Collection $config;
@@ -33,12 +43,22 @@ class Context
     public function loadConfig(): static
     {
         $config = [];
+        $configPath = null;
+
         // context config
-        if (is_file($configPath = $this->path('/config.json'))) {
-            $config = json_decode(file_get_contents($configPath), true);
+        if (is_file($configPath = $this->path('/'.self::CONFIG_FILE_NAME))) {
+            $contents = file_get_contents($configPath);
+            if ($contents === false) {
+                throw new RuntimeException("Failed to read config file: $configPath");
+            }
+            $config = json_decode($contents, true);
             // global config
-        } elseif (is_file($configPath = kantui_path('/config.json'))) {
-            $config = json_decode(file_get_contents($configPath), true);
+        } elseif (is_file($configPath = kantui_path('/'.self::CONFIG_FILE_NAME))) {
+            $contents = file_get_contents($configPath);
+            if ($contents === false) {
+                throw new RuntimeException("Failed to read config file: $configPath");
+            }
+            $config = json_decode($contents, true);
         }
 
         if (is_null($config)) {
@@ -86,15 +106,23 @@ class Context
     {
         if (! is_dir($contextPath = $this->path())) {
             $old = umask(0);
-            @mkdir($contextPath, 0774, true);
+            $result = @mkdir($contextPath, 0774, true);
             umask($old);
+
+            if (! $result) {
+                throw new RuntimeException("Failed to create context directory: $contextPath");
+            }
         }
 
-        if (! is_file($this->path('data.json'))) {
-            file_put_contents(
-                $this->path('data.json'),
+        if (! is_file($this->path(self::DATA_FILE_NAME))) {
+            $result = file_put_contents(
+                $this->path(self::DATA_FILE_NAME),
                 json_encode(DataManager::defaultData(), JSON_PRETTY_PRINT)
             );
+
+            if ($result === false) {
+                throw new RuntimeException('Failed to create default data file.');
+            }
         }
     }
 }

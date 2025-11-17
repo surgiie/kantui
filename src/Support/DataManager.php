@@ -10,7 +10,6 @@ use Kantui\Support\Enums\TodoUrgency;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Layout\Constraint;
-use PhpTui\Tui\Style\Style;
 use PhpTui\Tui\Text\Title;
 use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
@@ -27,6 +26,21 @@ class DataManager
      * The number of items to paginate by.
      */
     public const PAGINATE_BY = 6;
+
+    /**
+     * The date format used for created_at timestamps.
+     */
+    private const DATE_FORMAT = 'Y-m-d H:i:s';
+
+    /**
+     * The filename for the data file.
+     */
+    private const DATA_FILE_NAME = 'data.json';
+
+    /**
+     * Layout percentage for small item count (2 or less).
+     */
+    private const SMALL_ITEM_CONSTRAINT_PERCENTAGE = 30;
 
     /**
      * The todos with status "todo".
@@ -67,11 +81,16 @@ class DataManager
     {
         $todos = static::defaultData();
 
-        $todosPath = $this->context->path('data.json');
+        $todosPath = $this->context->path(self::DATA_FILE_NAME);
 
         if (is_file($todosPath)) {
+            $contents = file_get_contents($todosPath);
 
-            $todos = json_decode(file_get_contents($todosPath), true);
+            if ($contents === false) {
+                throw new \RuntimeException('Failed to read todos from data file.');
+            }
+
+            $todos = json_decode($contents, true);
 
             if (json_last_error()) {
                 throw new \RuntimeException(
@@ -99,7 +118,9 @@ class DataManager
         return $todos;
     }
 
-    /** Get last page of given todo type. */
+    /**
+     * Get the last page of items for a given todo type.
+     */
     public function getLastPageItems(TodoType $type): LengthAwarePaginator
     {
         $paginated = $this->getByType($type, new Cursor(Cursor::INACTIVE, 0));
@@ -108,13 +129,17 @@ class DataManager
         return $this->getByType($type, new Cursor(Cursor::INACTIVE, $lastPage));
     }
 
-    /** Get active index. */
+    /**
+     * Get the active todo item index.
+     */
     public function getActiveIndex(): int
     {
         return $this->activeIndex;
     }
 
-    /**Reposition active item by the given number of index counts. */
+    /**
+     * Reposition active item by the given number of index counts.
+     */
     public function repositionActiveItem(int $offset): void
     {
         $activeTodo = $this->getActiveTodo();
@@ -125,6 +150,11 @@ class DataManager
 
         $typeTodos = &$this->todos[$type];
         $currentIndex = array_search($activeTodo->id, array_column($typeTodos, 'id'));
+
+        if ($currentIndex === false) {
+            return;
+        }
+
         $newIndex = $currentIndex + ($offset);
         if ($newIndex < 0 || $newIndex >= count($typeTodos)) {
             return;
@@ -137,7 +167,9 @@ class DataManager
         $this->writeTodos();
     }
 
-    /** Edit the active todo item interactively. */
+    /**
+     * Edit the active todo item interactively using prompts.
+     */
     public function editInteractively(): void
     {
         $activeTodo = $this->getActiveTodo();
@@ -184,7 +216,7 @@ class DataManager
             ]
         );
 
-        $created_at = Carbon::now($this->context->getTimezone())->toDateTimeString();
+        $created_at = Carbon::now($this->context->getTimezone())->format(self::DATE_FORMAT);
 
         $todo = new Todo(
             $this->context,
@@ -203,13 +235,19 @@ class DataManager
         return $todo;
     }
 
-    /** Write the todos to the data file. */
+    /**
+     * Write the todos array to the data file as JSON.
+     */
     public function writeTodos(): void
     {
-        file_put_contents(
-            $this->context->path('data.json'),
+        $result = file_put_contents(
+            $this->context->path(self::DATA_FILE_NAME),
             json_encode($this->todos, JSON_PRETTY_PRINT)
         );
+
+        if ($result === false) {
+            throw new \RuntimeException('Failed to write todos to data file.');
+        }
     }
 
     /**
@@ -238,12 +276,18 @@ class DataManager
         $this->writeTodos();
     }
 
-    /** Delete a todo item. */
+    /**
+     * Delete a todo item from the collection.
+     */
     public function delete(Todo $todo): void
     {
         $id = $todo->id;
 
         $index = array_search($id, array_column($this->todos[$todo->type->value], 'id'));
+
+        if ($index === false) {
+            return;
+        }
 
         unset($this->todos[$todo->type->value][$index]);
 
@@ -262,21 +306,36 @@ class DataManager
     }
 
     /**
-     * Get the widget for the given todo collection.
+     * Calculate constraint percentage based on todo count.
      */
-    public function makeWidget(TodoType $type, LengthAwarePaginator $todos, Cursor $cursor): Widget
+    protected function calculateConstraintPercentage(int $count): ?int
+    {
+        if ($count == 0) {
+            return null;
+        }
+
+        if ($count <= 2) {
+            return self::SMALL_ITEM_CONSTRAINT_PERCENTAGE;
+        }
+
+        return intval(floor(100 / $count));
+    }
+
+    /**
+     * Build todo widgets and constraints from paginated todos.
+     */
+    protected function buildTodoWidgets(LengthAwarePaginator $todos, int $currentIndex): array
     {
         $widgets = [];
         $constraints = [];
-        $currentIndex = $cursor->index();
+        $count = $todos->count();
 
-        if (($count = $todos->count()) == 0) {
+        $constraintPercentage = $this->calculateConstraintPercentage($count);
+
+        if ($constraintPercentage === null) {
             $constraints[] = Constraint::percentage(100);
-        } elseif ($count <= 2) {
-            // If there are only 2 todos, use a smaller percentage so the todos are not too big on the screen.
-            $constraintPercentage = 30;
-        } else {
-            $constraintPercentage = intval(floor(100 / $count));
+
+            return ['widgets' => $widgets, 'constraints' => $constraints];
         }
 
         foreach ($todos as $index => $todo) {
@@ -297,12 +356,31 @@ class DataManager
             $widgets[] = BlockWidget::default();
         }
 
+        return ['widgets' => $widgets, 'constraints' => $constraints];
+    }
+
+    /**
+     * Format the type title with pagination info if needed.
+     */
+    protected function formatTypeTitle(TodoType $type, Cursor $cursor, LengthAwarePaginator $todos): string
+    {
         $title = Str::replace('_', ' ', $type->name);
 
-        if ($currentIndex != Cursor::INACTIVE) {
-            $current = ($currentIndex + 1) + (($cursor->page() - 1) * static::PAGINATE_BY);
+        if ($cursor->index() != Cursor::INACTIVE) {
+            $current = ($cursor->index() + 1) + (($cursor->page() - 1) * static::PAGINATE_BY);
             $title = "$title - {$current}/{$todos->total()}";
         }
+
+        return $title;
+    }
+
+    /**
+     * Get the widget for the given todo collection.
+     */
+    public function makeWidget(TodoType $type, LengthAwarePaginator $todos, Cursor $cursor): Widget
+    {
+        $result = $this->buildTodoWidgets($todos, $cursor->index());
+        $title = $this->formatTypeTitle($type, $cursor, $todos);
 
         return BlockWidget::default()
             ->borders(Borders::ALL)
@@ -310,12 +388,8 @@ class DataManager
             ->style(\Kantui\default_style())->widget(
                 GridWidget::default()
                     ->direction(Direction::Vertical)
-                    ->constraints(
-                        ...$constraints
-                    )
-                    ->widgets(
-                        ...$widgets
-                    )
+                    ->constraints(...$result['constraints'])
+                    ->widgets(...$result['widgets'])
             );
     }
 }
