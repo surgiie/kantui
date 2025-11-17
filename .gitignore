@@ -1,4 +1,11 @@
 node_modules
 .php-cs-fixer.cache
 vendor
+.phpunit.cache
+.phpunit.result.cache
+coverage
+.DS_Store
+*.swp
+*.swo
+*~
 

@@ -16,9 +16,9 @@
     "php": "^8.3",
     "php-tui/php-tui": "^0.2.1",
     "illuminate/support": "^11.42",
-    "laravel/prompts": "^0.3.4",
+    "laravel/prompts": "^0.3.7",
     "illuminate/pagination": "^11.42",
-    "ramsey/uuid": "^4.7",
+    "ramsey/uuid": "^4.9",
     "amphp/amp": "^3.1"
   },
   "autoload": {
@@ -30,8 +30,42 @@
     ]
   },
   "require-dev": {
-    "symfony/var-dumper": "^7.2",
-    "laravel/pint": "^1.20",
-    "fakerphp/faker": "^1.24"
+    "symfony/var-dumper": "^7.3",
+    "laravel/pint": "^1.25",
+    "fakerphp/faker": "^1.24",
+    "pestphp/pest": "^3.0",
+    "phpstan/phpstan": "^2.0"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Kantui\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "pest",
+    "test:coverage": "pest --coverage",
+    "test:coverage-html": "pest --coverage-html coverage",
+    "analyse": "phpstan analyse",
+    "format": "pint",
+    "format:test": "pint --test",
+    "check": [
+      "@format:test",
+      "@analyse",
+      "@test"
+    ]
+  },
+  "scripts-descriptions": {
+    "test": "Run the test suite with Pest",
+    "test:coverage": "Run tests with coverage report",
+    "test:coverage-html": "Generate HTML coverage report",
+    "analyse": "Run static analysis with PHPStan",
+    "format": "Format code with Laravel Pint",
+    "format:test": "Check code formatting without making changes",
+    "check": "Run all quality checks (format, analyse, test)"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
   }
 }

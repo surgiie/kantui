@@ -19,7 +19,7 @@ test -t 1 && USE_TTY="-t"
 
 # Create a workspace area for temporary files to do build with.
 workspace="/tmp/.kantui-cli"
-mkdir -p $workspace
+mkdir -p "$workspace"
 
 cd $workspace
 
@@ -55,10 +55,10 @@ EOF
 
 # Build docker image for the cli if not already present.
 if [ -z "$(docker images -q $image_tag)" ]; then
-    docker build -t $image_tag . --no-cache --build-arg UID=$(id -u) --build-arg GID=$(id -g)
+    docker build -t "$image_tag" . --no-cache --build-arg UID="$(id -u)" --build-arg GID="$(id -g)"
     if [ $? -ne 0 ]; then
         echo "Failed to build docker image $image_tag"
-        rm -rf $workspace
+        rm -rf "$workspace"
         exit 1
     fi
 fi
@@ -66,13 +66,16 @@ fi
 # Change back to the original directory after we have built the docker image.
 cd - >/dev/null
 # Remove the workspace after we have built the docker image, these files are no longer needed.
-rm -rf $workspace
+rm -rf "$workspace"
 
 start_container() {
     # remove dangling containers that may have exited but still show up during docker ps -a
-    docker ps -a | grep $container_name >/dev/null && docker rm $container_name >/dev/null
+    if docker ps -a | grep -q "$container_name"; then
+        docker stop "$container_name" >/dev/null 2>&1 || true
+        docker rm "$container_name" >/dev/null 2>&1 || true
+    fi
 
-    docker run --name "$container_name" -i ${USE_TTY} -d --user $(id -u):$(id -g) -v $kantui_dir:/home/kantui/.kantui "$image_tag" tail -f /dev/null
+    docker run --name "$container_name" -i ${USE_TTY} -d --user "$(id -u):$(id -g)" -v "$kantui_dir:/home/kantui/.kantui" "$image_tag" tail -f /dev/null
     echo "Waiting for container to start..."
     until [ "$(docker container inspect -f '{{.State.Running}}' $container_name 2>/dev/null)" = "true" ]; do
         sleep 1
@@ -105,29 +108,29 @@ fi
 # the data file is present/remounted back into the container.
 if [ ! -f "$data_file" ]; then
     ensure_defaults
-    docker stop $container_name
-    docker rm $container_name
+    docker stop "$container_name" >/dev/null 2>&1 || true
+    docker rm "$container_name" >/dev/null 2>&1 || true
     start_container
 fi
 
 # determine the environment variables to pass to the container
 env_vars=""
-for var in $(env | grep '^KANTUI_'); do
-    var_name=$(echo "$var" | cut -d'=' -f1)
-    var_value=$(echo "$var" | cut -d'=' -f2-)
-    env_vars="$env_vars --env $var_name=$var_value"
-done
+while IFS='=' read -r var_name var_value; do
+    # Validate that variable name starts with KANTUI_ (already filtered by grep)
+    # and properly quote the value to prevent injection
+    env_vars="$env_vars --env $(printf '%q' "$var_name")=$(printf '%q' "$var_value")"
+done < <(env | grep '^KANTUI_')
 
 command="${1:-}"
 if [ "$command" = "--attach" ]; then
     # command is sh by default
     container_command=${2:-sh}
-    docker exec -i ${USE_TTY} ${env_vars} --env="PS1=╰─➤  (devcontainer) " $container_name $container_command
+    docker exec -i ${USE_TTY} ${env_vars} --env="PS1=╰─➤  (devcontainer) " "$container_name" "$container_command"
     exit $?
 fi
 
 # Then run the command in the container.
-docker exec -i ${USE_TTY} ${env_vars} $container_name "kantui" "${@}"
+docker exec -i ${USE_TTY} ${env_vars} "$container_name" "kantui" "${@}"
 # check if command succeeded
 if [ $? -ne 0 ]; then
     echo "Failed to run kantui"

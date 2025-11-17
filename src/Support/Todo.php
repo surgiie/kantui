@@ -18,6 +18,13 @@ use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 
+/**
+ * Represents a single todo item in the kanban board.
+ *
+ * This class encapsulates all data and presentation logic for a todo item,
+ * including its title, description, urgency level, creation timestamp, and
+ * the visual widget representation in the terminal UI.
+ */
 class Todo implements Arrayable
 {
     /**
@@ -46,6 +53,14 @@ class Todo implements Arrayable
 
     /**
      * Create a new todo item instance.
+     *
+     * @param  Context  $context  The application context for configuration access
+     * @param  TodoType  $type  The current state of the todo (TODO, IN_PROGRESS, DONE)
+     * @param  string  $title  The todo item title
+     * @param  string  $id  Unique identifier (UUID) for the todo
+     * @param  string  $description  Detailed description of the todo
+     * @param  TodoUrgency  $urgency  The urgency level (defaults to NORMAL)
+     * @param  string  $created_at  ISO timestamp of when the todo was created
      */
     public function __construct(
         protected Context $context,
@@ -59,6 +74,13 @@ class Todo implements Arrayable
 
     /**
      * Get the widget for the todo item.
+     *
+     * Creates a visual representation of the todo using PhpTui widgets.
+     * The widget displays the urgency label, creation date, title, and description.
+     * When active, the widget has a highlighted background.
+     *
+     * @param  bool  $active  Whether this todo is currently selected/active
+     * @return Widget The rendered widget for display in the TUI
      */
     public function widget(bool $active = false): Widget
     {
@@ -112,7 +134,15 @@ class Todo implements Arrayable
     }
 
     /**
-     * Get the urgency style.
+     * Get the urgency style based on the todo's urgency level.
+     *
+     * Returns a styled color representation for the urgency:
+     * - URGENT: Red
+     * - IMPORTANT: Yellow/Amber
+     * - NORMAL: Green
+     * - LOW: Light Blue
+     *
+     * @return Style The styled color for the urgency level
      */
     protected function getUrgencyStyle(): Style
     {
@@ -127,7 +157,12 @@ class Todo implements Arrayable
     }
 
     /**
-     * Convert the item to an array.
+     * Convert the item to an array for serialization.
+     *
+     * Converts the todo object into an array format suitable for JSON
+     * serialization and storage in the data file.
+     *
+     * @return array The todo data as an associative array
      */
     public function toArray(): array
     {
