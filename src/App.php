@@ -239,6 +239,7 @@ class App
         // Clamp cursor to valid range if it's out of bounds
         if ($this->cursor->index() >= $itemsOnPage) {
             $this->cursor->setIndex($itemsOnPage - 1);
+
             return;
         }
 
@@ -274,7 +275,7 @@ class App
     /**
      * Swap the cursor between todo and in progress.
      */
-    public function swapCursor(int $page = 1, bool $focusLast = false): void
+    public function swapCursor(bool $focusLast = false): void
     {
         $swapTo = $this->activeType->opposite();
         $this->activeType = $swapTo;
@@ -325,7 +326,7 @@ class App
     /**
      * Get the cursor.
      */
-    protected function getCursor(?TodoType $type = null): Cursor
+    protected function getCursor(): Cursor
     {
         return $this->cursor;
     }

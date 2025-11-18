@@ -30,6 +30,8 @@ if (! function_exists('kantui_path')) {
         } elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $base = getenv('USERPROFILE');
             $base = "$base/.kantui";
+        } else {
+            throw new \RuntimeException('Unable to determine home directory. Please set KANTUI_HOME environment variable.');
         }
 
         $path = "$base/$path";
