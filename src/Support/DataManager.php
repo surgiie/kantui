@@ -349,6 +349,7 @@ class DataManager implements DataManagerInterface
 
         $this->todos[$type->value][] = $todo;
 
+        $this->cacheNeedsRebuild = true;
         $this->writeTodos();
     }
 
