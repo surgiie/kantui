@@ -60,14 +60,14 @@ class App
     protected Display $display;
 
     /**
-     * The current active type.
+     * The cursor instance.
      */
-    protected ?TodoType $activeType;
+    protected Cursor $cursor;
 
     /**
-     * The cursors for the todo items.
+     * The currently active todo type.
      */
-    protected array $cursors;
+    protected ?TodoType $activeType = null;
 
     /**
      * The todo data manager.
@@ -93,6 +93,9 @@ class App
         $this->display = DisplayBuilder::default(
             PhpTuiPhpTermBackend::new(static::$terminal)
         )->fullscreen()->build();
+
+        $this->cursor = new Cursor(0, Cursor::INITIAL_PAGE);
+        $this->activeType = TodoType::TODO;
 
         static::$app = $this;
     }
@@ -141,11 +144,11 @@ class App
     }
 
     /**
-     * Set the cursor for a given type.
+     * Set the cursor position.
      */
     public function setCursor(TodoType $type, Cursor $cursor): void
     {
-        $this->cursors[$type->value] = $cursor;
+        $this->cursor->setIndex($cursor->index())->setPage($cursor->page());
     }
 
     /**
@@ -186,41 +189,38 @@ class App
      */
     protected function moveCursorDown(): void
     {
-        $cursor = $this->getCursor();
-
-        if (is_null($cursor)) {
+        if (is_null($this->activeType)) {
             $this->activeType = TodoType::TODO;
-            $cursor = $this->cursors[TodoType::TODO->value];
 
             if ($this->todos->count() === 0 && $this->inProgress->count() > 0) {
                 $this->activeType = TodoType::IN_PROGRESS;
-                $cursor = $this->cursors[TodoType::IN_PROGRESS->value];
             }
         }
 
         $activeItems = $this->getActiveItems();
 
-        $nextIndex = $cursor->index() + 1;
+        if ($activeItems === null || $activeItems->count() === 0) {
+            return;
+        }
 
-        if ($nextIndex > ($activeItems->count() - 1) && ! $activeItems->hasMorePages()) {
-            $cursor->setIndex($activeItems->count() - 1);
+        $itemsOnPage = $activeItems->count();
+
+        // Prevent cursor from going out of bounds
+        if ($this->cursor->index() >= $itemsOnPage) {
+            return;
+        }
+
+        // If we can move down within the current page
+        if ($this->cursor->index() < $itemsOnPage - 1) {
+            $this->cursor->increment();
 
             return;
         }
 
-        if ($nextIndex > ($activeItems->count() - 1) && $activeItems->hasMorePages()) {
-            $cursor->setIndex(0);
-            $cursor->setPage($cursor->nextPage());
-
-            return;
+        // If we're at the end of the page and there are more pages
+        if ($this->cursor->index() == $itemsOnPage - 1 && $activeItems->hasMorePages()) {
+            $this->cursor->setIndex(0)->setPage($this->cursor->nextPage());
         }
-
-        if ($nextIndex < $activeItems->count()) {
-            $cursor->increment();
-
-            return;
-        }
-
     }
 
     /**
@@ -228,34 +228,32 @@ class App
      */
     protected function moveCursorUp(): void
     {
-        $cursor = $this->getCursor();
+        $activeItems = $this->getActiveItems();
 
-        if (is_null($cursor)) {
+        if ($activeItems === null || $activeItems->count() === 0) {
             return;
         }
 
-        if ($cursor->index() < 0) {
-            return;
-        }
+        $itemsOnPage = $activeItems->count();
 
-        $previousIndex = $cursor->index() - 1;
-
-        if ($previousIndex < 0 && $cursor->page() > 1) {
-            $cursor->setIndex(DataManager::PAGINATE_BY - 1);
-            $cursor->setPage($cursor->previousPage());
+        // Clamp cursor to valid range if it's out of bounds
+        if ($this->cursor->index() >= $itemsOnPage) {
+            $this->cursor->setIndex($itemsOnPage - 1);
 
             return;
         }
 
-        if ($previousIndex < 0 && $cursor->page() === Cursor::INITIAL_PAGE) {
-            $cursor->setIndex(0);
-            $cursor->setPage(Cursor::INITIAL_PAGE);
+        // If we can move up within the current page
+        if ($this->cursor->index() > 0) {
+            $this->cursor->decrement();
 
             return;
         }
 
-        $cursor->decrement();
-
+        // If we're at the start of the page and not on the first page
+        if ($this->cursor->index() === 0 && $this->cursor->page() > Cursor::INITIAL_PAGE) {
+            $this->cursor->setIndex(DataManager::PAGINATE_BY - 1)->setPage($this->cursor->previousPage());
+        }
     }
 
     /**
@@ -263,41 +261,37 @@ class App
      */
     protected function moveCursorLeft(): void
     {
-        $cursor = $this->getCursor();
-
-        if (is_null($cursor)) {
-            return;
-        }
-
         if ($this->todos->count() === 0) {
             return;
         }
 
+        // Cycle left: IN_PROGRESS -> TODO
         if ($this->activeType === TodoType::IN_PROGRESS) {
-            $this->swapCursor();
-
-            return;
+            $this->activeType = TodoType::TODO;
+            $this->cursor->setIndex(0)->setPage(Cursor::INITIAL_PAGE);
         }
     }
 
     /**
      * Swap the cursor between todo and in progress.
      */
-    public function swapCursor(int $index = 0, int $page = 1, bool $focusLast = false): void
+    public function swapCursor(bool $focusLast = false): void
     {
-        $activeType = $this->activeType;
-        $swapTo = $activeType->opposite();
-        $this->resetCursor($swapTo, $index, $page, $focusLast);
-        $this->resetCursor($activeType);
+        $swapTo = $this->activeType->opposite();
         $this->activeType = $swapTo;
 
-        // if the new active type has no items, simply reset both cursors and deactivate the active type.
-        if ($this->manager->getByType($swapTo, $this->getCursor($swapTo))->total() === 0) {
-            $this->activeType = null;
-            $this->resetCursor(TodoType::IN_PROGRESS);
-            $this->resetCursor(TodoType::TODO);
+        if ($focusLast) {
+            $paginator = $this->manager->getLastPageItems($swapTo);
+            $this->cursor->setIndex($paginator->count() - 1)->setPage($paginator->lastPage());
+        } else {
+            $this->cursor->setIndex(0)->setPage(Cursor::INITIAL_PAGE);
         }
 
+        // if the new active type has no items, simply reset cursor and set active type to null
+        if ($this->manager->getByType($swapTo, $this->cursor)->total() === 0) {
+            $this->cursor->setIndex(0)->setPage(Cursor::INITIAL_PAGE);
+            $this->activeType = TodoType::TODO;
+        }
     }
 
     /**
@@ -305,26 +299,19 @@ class App
      */
     protected function moveCursorRight(): void
     {
-        $cursor = $this->getCursor();
-
-        if (is_null($cursor)) {
-            return;
-        }
-
         if ($this->inProgress->count() === 0) {
             return;
         }
 
+        // Cycle right: TODO -> IN_PROGRESS
         if ($this->activeType === TodoType::TODO) {
-            $this->swapCursor();
-
-            return;
+            $this->activeType = TodoType::IN_PROGRESS;
+            $this->cursor->setIndex(0)->setPage(Cursor::INITIAL_PAGE);
         }
-
     }
 
     /**
-     * Reset the cursor for a given type.
+     * Reset the cursor position.
      */
     protected function resetCursor(TodoType $type, int $index = Cursor::INACTIVE, int $page = Cursor::INITIAL_PAGE, bool $focusLast = false): void
     {
@@ -333,29 +320,15 @@ class App
             $index = $paginator->count() - 1;
             $page = $paginator->lastPage();
         }
-        $this->cursors[$type->value] = new Cursor($index, $page);
+        $this->cursor->setIndex($index)->setPage($page);
     }
 
     /**
-     * Initialize cursor for a type if not already set.
+     * Get the cursor.
      */
-    protected function initializeCursor(TodoType $type): void
+    protected function getCursor(): Cursor
     {
-        if (! isset($this->cursors[$type->value])) {
-            $this->cursors[$type->value] = new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE);
-        }
-    }
-
-    /**
-     * Get the cursor for the active type.
-     */
-    protected function getCursor(?TodoType $type = null): ?Cursor
-    {
-        if (! is_null($type)) {
-            return $this->cursors[$type->value];
-        }
-
-        return $this->activeType !== null ? $this->cursors[$this->activeType->value] : null;
+        return $this->cursor;
     }
 
     /**
@@ -386,7 +359,7 @@ class App
             return function () {
                 $this->manager->editInteractively();
 
-                return $this->restartApp($this->activeType, $this->getCursor($this->activeType));
+                return $this->restartApp($this->activeType, $this->cursor);
             };
         }
 
@@ -450,7 +423,6 @@ class App
 
         if ($event->code == KeyCode::Backspace && $this->activeType === TodoType::IN_PROGRESS) {
             $this->manager->move($this->manager->getActiveTodo(), TodoType::TODO);
-            $this->resetCursor(TodoType::IN_PROGRESS);
             $this->activeType = TodoType::TODO;
             $this->resetCursor(TodoType::TODO, focusLast: true);
         }
@@ -462,14 +434,6 @@ class App
     protected function start(): int
     {
         $action = null;
-
-        // only reset/initialize if not set. Some actions (e.g create new todo) create a new instance of the app.
-        if (! isset($this->activeType)) {
-            $this->activeType = null;
-        }
-
-        $this->initializeCursor(TodoType::TODO);
-        $this->initializeCursor(TodoType::IN_PROGRESS);
 
         while (true) {
             while (null != ($event = static::$terminal->events()->next())) {
@@ -492,9 +456,15 @@ class App
                 }
             }
 
-            $this->todos = $this->manager->getByType(TodoType::TODO, $this->getCursor(TodoType::TODO));
+            $this->todos = $this->manager->getByType(
+                TodoType::TODO,
+                $this->activeType === TodoType::TODO ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+            );
 
-            $this->inProgress = $this->manager->getByType(TodoType::IN_PROGRESS, $this->getCursor(TodoType::IN_PROGRESS));
+            $this->inProgress = $this->manager->getByType(
+                TodoType::IN_PROGRESS,
+                $this->activeType === TodoType::IN_PROGRESS ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+            );
 
             $this->display->draw($this->widget());
             delay(0.01);
@@ -562,12 +532,11 @@ class App
         $lastIndex = $this->manager->getActiveIndex();
 
         $this->manager->delete($activeTodo);
-        $cursor = $this->getCursor();
 
         // Get the latest items for the active type after deletion.
-        $items = $this->manager->getByType($this->activeType, $cursor);
+        $items = $this->manager->getByType($this->activeType, $this->cursor);
 
-        $this->adjustCursorAfterDeletion($lastIndex, $cursor, $items);
+        $this->adjustCursorAfterDeletion($lastIndex, $this->cursor, $items);
     }
 
     /**
@@ -589,7 +558,7 @@ class App
         } else {
             $this->resetCursor(TodoType::IN_PROGRESS, index: 0, page: Cursor::INITIAL_PAGE);
 
-            if ($this->manager->getByType(TodoType::IN_PROGRESS, $this->getCursor(TodoType::IN_PROGRESS))->total() === 0) {
+            if ($this->manager->getByType(TodoType::IN_PROGRESS, $this->cursor)->total() === 0) {
                 $this->swapCursor();
             }
         }
@@ -647,8 +616,16 @@ class App
                                 Constraint::percentage(self::LAYOUT_HALF_PERCENTAGE)
                             )
                             ->widgets(
-                                $this->manager->makeWidget(TodoType::TODO, $this->todos, $this->getCursor(TodoType::TODO)),
-                                $this->manager->makeWidget(TodoType::IN_PROGRESS, $this->inProgress, $this->getCursor(TodoType::IN_PROGRESS)),
+                                $this->manager->makeWidget(
+                                    TodoType::TODO,
+                                    $this->todos,
+                                    $this->activeType === TodoType::TODO ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+                                ),
+                                $this->manager->makeWidget(
+                                    TodoType::IN_PROGRESS,
+                                    $this->inProgress,
+                                    $this->activeType === TodoType::IN_PROGRESS ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+                                ),
                             )
                     ),
                 ParagraphWidget::fromText(

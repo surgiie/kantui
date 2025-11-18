@@ -159,7 +159,7 @@ class Context implements ContextInterface
      */
     public function path(string $path = ''): string
     {
-        return rtrim(kantui_path("contexts/{$this->name}/{$path}", '/'));
+        return rtrim(kantui_path("contexts/{$this->name}/{$path}"), '/');
     }
 
     /**
