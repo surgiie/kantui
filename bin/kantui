@@ -4,8 +4,6 @@
 use Kantui\App;
 use Kantui\Support\Context;
 
-use function Laravel\Prompts\error;
-
 require file_exists(__DIR__.'/../../../autoload.php') ? __DIR__.'/../../../autoload.php' : __DIR__.'/../vendor/autoload.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
@@ -18,18 +16,19 @@ set_error_handler(function ($severity, $message, $file, $line) {
 
 const KANTUI_VERSION = '0.3.0';
 
-$context = new Context(getenv('KANTUI_CONTEXT') ?: 'default');
-
-$context->ensureDefaults();
-
-$app = new App($context, KANTUI_VERSION);
 try {
+    $context = new Context(getenv('KANTUI_CONTEXT') ?: 'default');
+
+    $context->ensureDefaults();
+
+    $app = new App($context, KANTUI_VERSION);
+
     exit($app->run());
-} catch (Exception $e) {
+} catch (Throwable $e) {
     if (filter_var(getenv('KANTUI_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
         throw $e;
     } else {
-        error('ERROR: '.$e->getMessage().PHP_EOL);
+        fwrite(STDERR, "\033[31mERROR:\033[0m ".$e->getMessage().PHP_EOL);
         exit(1);
     }
 }
