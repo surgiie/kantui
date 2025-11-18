@@ -199,11 +199,16 @@ class App
 
         $activeItems = $this->getActiveItems();
 
-        if ($activeItems === null) {
+        if ($activeItems === null || $activeItems->count() === 0) {
             return;
         }
 
         $itemsOnPage = $activeItems->count();
+
+        // Prevent cursor from going out of bounds
+        if ($this->cursor->index() >= $itemsOnPage) {
+            return;
+        }
 
         // If we can move down within the current page
         if ($this->cursor->index() < $itemsOnPage - 1) {
@@ -225,7 +230,15 @@ class App
     {
         $activeItems = $this->getActiveItems();
 
-        if ($activeItems === null) {
+        if ($activeItems === null || $activeItems->count() === 0) {
+            return;
+        }
+
+        $itemsOnPage = $activeItems->count();
+
+        // Clamp cursor to valid range if it's out of bounds
+        if ($this->cursor->index() >= $itemsOnPage) {
+            $this->cursor->setIndex($itemsOnPage - 1);
             return;
         }
 
