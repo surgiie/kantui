@@ -493,7 +493,7 @@ class DataManager implements DataManagerInterface
     {
         $title = Str::replace('_', ' ', $type->name);
 
-        if ($cursor->index() != Cursor::INACTIVE) {
+        if ($cursor->index() != Cursor::INACTIVE && $todos->total() > 0) {
             $current = ($cursor->index() + 1) + (($cursor->page() - 1) * static::PAGINATE_BY);
             $title = "$title - {$current}/{$todos->total()}";
         }
