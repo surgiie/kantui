@@ -690,7 +690,7 @@ class App
         $title = "Kantui: v$this->version | Context: {$this->context}";
 
         if ($filterDescription !== '') {
-            $title .= " | FILTERED: $filterDescription";
+            $title .= " | Filtered: $filterDescription";
         }
 
         return GridWidget::default()
