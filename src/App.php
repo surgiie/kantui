@@ -645,7 +645,7 @@ class App
                 TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
                 TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
             ],
-            default: $currentFilter?->value ?? 'all'
+            default: $currentFilter->value ?? 'all'
         );
 
         if ($urgency === 'all') {

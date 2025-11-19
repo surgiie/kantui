@@ -235,7 +235,7 @@ class DataManager implements DataManagerInterface
         if (! $activeTodo) {
             return;
         }
-        info('Edit the todo:');
+        info('Edit Todo:');
         $title = text('Title:', default: $activeTodo->title);
         $description = textarea('Description:', default: $activeTodo->description, required: true);
         $urgency = select(
@@ -264,7 +264,7 @@ class DataManager implements DataManagerInterface
      */
     public function createInteractively(): Todo
     {
-        info('Create a new todo:');
+        info('Create Todo:');
 
         $title = text('Title:');
 
