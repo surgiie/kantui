@@ -69,3 +69,28 @@ kantui --attach
 
 **Note** - Your `~/.kantui` directory will automatically be mounted on initial run and any `KANTUI_` env variables will automatically be passed to the container.
 
+## Keybindings
+
+### Navigation
+- `j` or `↓` - Move cursor down
+- `k` or `↑` - Move cursor up
+- `h` or `←` - Move cursor left (switch to TODO column)
+- `l` or `→` - Move cursor right (switch to IN PROGRESS column)
+
+### Todo Management
+- `n` - Create a new todo
+- `e` - Edit the active todo
+- `x` - Delete the active todo
+- `ENTER` - Progress todo to next stage (TODO → IN PROGRESS → DONE)
+- `BACKSPACE` - Move todo back from IN PROGRESS to TODO
+- `[` - Move item up in the list
+- `]` - Move item down in the list
+
+### Search & Filter
+- `/` - Search todos by title or description
+- `f` - Filter todos by urgency level
+- `c` - Clear all active filters
+
+### Other
+- `q` - Quit the application
+
