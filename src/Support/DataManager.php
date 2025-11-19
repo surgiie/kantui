@@ -76,6 +76,11 @@ class DataManager implements DataManagerInterface
     private bool $cacheNeedsRebuild = true;
 
     /**
+     * The search and filter state (static to persist across app restarts).
+     */
+    protected static ?SearchFilter $searchFilter = null;
+
+    /**
      * Create a new DataManager instance.
      *
      * @param  Context  $context  The application context
@@ -84,6 +89,11 @@ class DataManager implements DataManagerInterface
     {
         $this->todos = $this->loadTodos();
         $this->rebuildIndexCache();
+
+        // Initialize static search filter if not already set
+        if (static::$searchFilter === null) {
+            static::$searchFilter = new SearchFilter;
+        }
     }
 
     /**
@@ -225,7 +235,7 @@ class DataManager implements DataManagerInterface
         if (! $activeTodo) {
             return;
         }
-        info('Edit the todo:');
+        info('Edit Todo:');
         $title = text('Title:', default: $activeTodo->title);
         $description = textarea('Description:', default: $activeTodo->description, required: true);
         $urgency = select(
@@ -254,7 +264,7 @@ class DataManager implements DataManagerInterface
      */
     public function createInteractively(): Todo
     {
-        info('Create a new todo:');
+        info('Create Todo:');
 
         $title = text('Title:');
 
@@ -318,6 +328,7 @@ class DataManager implements DataManagerInterface
      * Get todos by type and paginate them appropriately.
      *
      * Retrieves todos of a specific type and returns them as a paginated collection.
+     * Applies active search and filter criteria.
      *
      * @param  TodoType  $type  The type of todos to retrieve
      * @param  Cursor  $cursor  The cursor containing pagination information
@@ -327,7 +338,14 @@ class DataManager implements DataManagerInterface
     {
         $page = $cursor->page();
 
-        $todos = Collection::make($this->todos[$type->value])->paginate(static::PAGINATE_BY, $page);
+        $todos = $this->todos[$type->value];
+
+        // Apply search and filter
+        if (static::$searchFilter->isActive()) {
+            $todos = array_filter($todos, fn ($todo) => static::$searchFilter->matches($todo));
+        }
+
+        $todos = Collection::make($todos)->paginate(static::PAGINATE_BY, $page);
 
         return $todos;
     }
@@ -545,5 +563,15 @@ class DataManager implements DataManagerInterface
         }
 
         return $this->todoIndexCache[$type][$id] ?? false;
+    }
+
+    /**
+     * Get the search filter instance.
+     *
+     * @return SearchFilter The search filter instance
+     */
+    public function getSearchFilter(): SearchFilter
+    {
+        return static::$searchFilter;
     }
 }

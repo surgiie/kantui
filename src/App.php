@@ -7,6 +7,7 @@ use Kantui\Support\Context;
 use Kantui\Support\Cursor;
 use Kantui\Support\DataManager;
 use Kantui\Support\Enums\TodoType;
+use Kantui\Support\Enums\TodoUrgency;
 use PhpTui\Term\Actions;
 use PhpTui\Term\ClearType;
 use PhpTui\Term\Event\CharKeyEvent;
@@ -32,6 +33,8 @@ use Throwable;
 
 use function Amp\delay;
 use function Laravel\Prompts\clear;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
 
 class App
 {
@@ -380,17 +383,44 @@ class App
         }
 
         if ($event->char === '[' && ! is_null($this->activeType)) {
-            $this->manager->repositionActiveItem(-1);
-            $this->moveCursorUp();
+            // Prevent repositioning when filters are active
+            if (! $this->manager->getSearchFilter()->isActive()) {
+                $this->manager->repositionActiveItem(-1);
+                $this->moveCursorUp();
+            }
         }
 
         if ($event->char == ']' && ! is_null($this->activeType)) {
-            $this->manager->repositionActiveItem(1);
-            $this->moveCursorDown();
+            // Prevent repositioning when filters are active
+            if (! $this->manager->getSearchFilter()->isActive()) {
+                $this->manager->repositionActiveItem(1);
+                $this->moveCursorDown();
+            }
         }
 
         if ($event->char === 'x' && ! is_null($this->activeType)) {
             $this->handleDeleteTodo();
+        }
+
+        if ($event->char === '/') {
+            return function () {
+                $this->handleSearch();
+
+                return $this->restartApp($this->activeType, new Cursor(0, Cursor::INITIAL_PAGE));
+            };
+        }
+
+        if ($event->char === 'f') {
+            return function () {
+                $this->handleFilterByUrgency();
+
+                return $this->restartApp($this->activeType, new Cursor(0, Cursor::INITIAL_PAGE));
+            };
+        }
+
+        if ($event->char === 'c') {
+            $this->manager->getSearchFilter()->clear();
+            $this->resetCursor(TodoType::TODO, 0, Cursor::INITIAL_PAGE);
         }
 
         return false; // Continue event loop
@@ -584,6 +614,48 @@ class App
     }
 
     /**
+     * Handle search input from the user.
+     */
+    protected function handleSearch(): void
+    {
+        $currentQuery = $this->manager->getSearchFilter()->getSearchQuery();
+
+        $query = text(
+            label: 'Search todos (title/description):',
+            default: $currentQuery ?? '',
+            hint: 'Leave empty to clear search'
+        );
+
+        $this->manager->getSearchFilter()->setSearchQuery($query);
+    }
+
+    /**
+     * Handle urgency filter selection from the user.
+     */
+    protected function handleFilterByUrgency(): void
+    {
+        $currentFilter = $this->manager->getSearchFilter()->getUrgencyFilter();
+
+        $urgency = select(
+            label: 'Filter by urgency:',
+            options: [
+                'all' => 'All (Clear filter)',
+                TodoUrgency::LOW->value => TodoUrgency::LOW->label(),
+                TodoUrgency::NORMAL->value => TodoUrgency::NORMAL->label(),
+                TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
+                TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
+            ],
+            default: $currentFilter->value ?? 'all'
+        );
+
+        if ($urgency === 'all') {
+            $this->manager->getSearchFilter()->setUrgencyFilter(null);
+        } else {
+            $this->manager->getSearchFilter()->setUrgencyFilter(TodoUrgency::from($urgency));
+        }
+    }
+
+    /**
      * Get style object to use on in the widget.
      */
     protected function getStyle(): Style
@@ -592,10 +664,35 @@ class App
     }
 
     /**
+     * Get the help text for the footer based on current state.
+     */
+    protected function getHelpText(): string
+    {
+        $searchFilter = $this->manager->getSearchFilter();
+
+        if ($searchFilter->isActive()) {
+            // When filtering, exclude item repositioning commands
+            return '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | n (new) | e (edit) | x (delete) | / (search) | f (filter) | c (clear filters) | q (quit)';
+        }
+
+        // Normal mode with all commands
+        return '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | [ (move item up) | ] (move item down) | n (new) | e (edit) | x (delete) | / (search) | f (filter) | c (clear filters) | q (quit)';
+    }
+
+    /**
      * Return the widget to be rendered.
      */
     protected function widget(): Widget
     {
+        $searchFilter = $this->manager->getSearchFilter();
+        $filterDescription = $searchFilter->getDescription();
+
+        $title = "Kantui: v$this->version | Context: {$this->context}";
+
+        if ($filterDescription !== '') {
+            $title .= " | FILTERED: $filterDescription";
+        }
+
         return GridWidget::default()
             ->direction(Direction::Vertical)
             ->constraints(Constraint::percentage(self::LAYOUT_MAIN_PERCENTAGE), Constraint::percentage(self::LAYOUT_FOOTER_PERCENTAGE))
@@ -603,9 +700,7 @@ class App
                 BlockWidget::default()
                     ->borders(Borders::ALL)
                     ->titles(
-                        Title::fromString(
-                            "Kantui: v$this->version | Context: {$this->context}"
-                        )
+                        Title::fromString($title)
                     )
                     ->style($this->getStyle())
                     ->widget(
@@ -629,9 +724,7 @@ class App
                             )
                     ),
                 ParagraphWidget::fromText(
-                    Text::fromString(
-                        '  j (↓) | k (↑) | h (←) | l (→) | ENTER (progress) | BACKSPACE (move back) | [ (move item up) | ] (move item down) | n (new) | e (edit) | x (delete) | q (quit)'
-                    )
+                    Text::fromString($this->getHelpText())
                 )->alignment(HorizontalAlignment::Right)->style($this->getStyle())
             );
     }
