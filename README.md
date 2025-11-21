@@ -87,7 +87,7 @@ kantui --attach
 - `]` - Move item down in the list
 
 ### Search & Filter
-- `/` - Search todos by title or description
+- `/` - Search todos by tags or description
 - `f` - Filter todos by urgency level
 - `c` - Clear all active filters
 

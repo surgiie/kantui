@@ -28,6 +28,10 @@ require __DIR__.'/vendor/autoload.php';
  */
 function parseArguments(array $argv): array
 {
+    if (str_contains($argv[1] ?? '', '--')) {
+        echo "Error: Context argument is missing or invalid.\n";
+        showUsage();
+    }
     $args = [
         'context' => $argv[1] ?? null,
         'force' => in_array('--force', $argv),
@@ -60,7 +64,7 @@ function generateTodos(Faker\Generator $faker, string $type, int $count): array
         $todos[] = [
             'id' => $faker->uuid,
             'urgency' => $faker->randomElement(['low', 'normal', 'urgent']),
-            'title' => $faker->sentence,
+            'tags' => $faker->words(rand(1, 3)),
             'description' => $faker->paragraph,
             'type' => $type,
             'created_at' => $faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d H:i:s'),
@@ -108,7 +112,7 @@ if (! $args['force'] && file_exists($path = $context->path('data.json'))) {
     exit(1);
 }
 
-$context->ensureDefaults();
+$context->ensureDefaultFiles();
 
 // Initialize Faker
 $faker = Faker\Factory::create();

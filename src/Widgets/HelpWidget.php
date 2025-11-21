@@ -42,6 +42,8 @@ class HelpWidget implements AppWidget
 
     public const DELETE_ITEM = 'x';
 
+    public const VIEW_DETAILS = 'i';
+
     // Reordering bindings
     public const MOVE_ITEM_UP = '[';
 
@@ -165,6 +167,7 @@ class HelpWidget implements AppWidget
                 self::NEW_ITEM => 'Create new todo item',
                 self::EDIT_ITEM => 'Edit selected item',
                 self::DELETE_ITEM => 'Delete selected item',
+                self::VIEW_DETAILS => 'View full todo details',
             ],
             'FILTERING & SEARCH' => [
                 self::SEARCH => 'Search/filter todos',

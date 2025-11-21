@@ -44,14 +44,14 @@ test('path with relative path', function () {
 
 test('ensure defaults creates directory', function () {
     $context = new Context('test');
-    $context->ensureDefaults();
+    $context->ensureDefaultFiles();
 
     expect($context->path())->toBeDirectory();
 });
 
 test('ensure defaults creates data file', function () {
     $context = new Context('test');
-    $context->ensureDefaults();
+    $context->ensureDefaultFiles();
 
     $dataFile = $context->path('data.json');
     expect($dataFile)->toBeFile();
@@ -72,7 +72,7 @@ test('config returns default when no config file', function () {
 
 test('config loads from file', function () {
     $context = new Context('test');
-    $context->ensureDefaults();
+    $context->ensureDefaultFiles();
 
     $configPath = $context->path('config.json');
     file_put_contents($configPath, json_encode(['timezone' => 'America/New_York']));
@@ -93,7 +93,7 @@ test('get timezone returns default', function () {
 
 test('directory permissions', function () {
     $context = new Context('test');
-    $context->ensureDefaults();
+    $context->ensureDefaultFiles();
 
     $perms = fileperms($context->path());
     // Check that group write is not set (should be 0755 or similar)

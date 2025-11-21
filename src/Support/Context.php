@@ -170,7 +170,7 @@ class Context implements ContextInterface
      *
      * @throws RuntimeException if directory or file creation fails
      */
-    public function ensureDefaults(): void
+    public function ensureDefaultFiles(): void
     {
         if (! is_dir($contextPath = $this->path())) {
             $old = umask(0);
