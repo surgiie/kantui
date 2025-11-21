@@ -261,7 +261,6 @@ class App
      */
     public function restartApp(?TodoType $type = null, ?Cursor $cursor = null): int
     {
-        clear();
         $app = new self($this->context, $this->version, $cursor, $type);
 
         return $app->run();

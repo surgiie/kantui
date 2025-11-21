@@ -12,6 +12,8 @@ use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
 use PhpTui\Tui\Layout\Constraint;
 use PhpTui\Tui\Style\Style;
+use PhpTui\Tui\Text\Line;
+use PhpTui\Tui\Text\Span;
 use PhpTui\Tui\Text\Text;
 use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
@@ -108,8 +110,14 @@ class Todo implements Arrayable
 
         $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->getTimezone());
 
-        // Build tag badges string
-        $tagBadges = $this->buildTagBadges($active);
+        // Build text content with styled tag badges
+        $contentText = $this->buildContentText($active, $style);
+
+        // Create a background-only style for the content paragraph (no foreground to preserve span colors)
+        $contentBgStyle = Style::default();
+        if ($active) {
+            $contentBgStyle = $contentBgStyle->bg(RgbColor::fromRgb(...self::COLOR_DARK_BG));
+        }
 
         return BlockWidget::default()
             ->borders(Borders::ALL)
@@ -139,36 +147,62 @@ class Todo implements Arrayable
                                     )
                                 )->style($style)->alignment(HorizontalAlignment::Right)
                             ),
-                        ParagraphWidget::fromText(
-                            Text::fromString(
-                                $tagBadges.PHP_EOL.
-                                $this->description
-                            )
-                        )->style($style)
+                        ParagraphWidget::fromText($contentText)->style($contentBgStyle)
                     )
             );
 
     }
 
     /**
-     * Build colored tag badges for display.
+     * Build content text with styled tag badges.
      *
      * @param  bool  $active  Whether this todo is currently active
-     * @return string The formatted tag badges string
+     * @param  Style  $style  The base style for the text
+     * @return Text The formatted content with styled tags
      */
-    protected function buildTagBadges(bool $active): string
+    protected function buildContentText(bool $active, Style $style): Text
     {
+        $lines = [];
+
+        // First line: description with white text (no background, applied at paragraph level)
+        // Replace newlines with spaces to keep description on a single line
+        $descriptionStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+        $cleanDescription = trim(preg_replace('/\s+/', ' ', $this->description));
+        $lines[] = Line::fromSpans(Span::styled($cleanDescription, $descriptionStyle));
+
+        // Add empty line for spacing
+        $emptyStyle = Style::default();
+        $lines[] = Line::fromSpans(Span::styled('', $emptyStyle));
+
+        // Third line: styled tag badges with "Tags: " prefix
+        $tagSpans = [];
+
+        // Add "Tags: " prefix (no background, applied at paragraph level)
+        $prefixStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+        $tagSpans[] = Span::styled('Tags: ', $prefixStyle);
+
         if (empty($this->tags)) {
-            return '[No Tags]';
+            $noTagsStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+            $tagSpans[] = Span::styled('[No Tags]', $noTagsStyle);
+        } else {
+            foreach ($this->tags as $index => $tag) {
+                // Add space between tags
+                if ($index > 0) {
+                    $spaceStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+                    $tagSpans[] = Span::styled(' ', $spaceStyle);
+                }
+
+                // Tag with color (no background, applied at paragraph level)
+                $color = $this->getTagColorByName($tag);
+                $tagStyle = Style::default()->fg(RgbColor::fromRgb(...$color));
+
+                $tagSpans[] = Span::styled("[{$tag}]", $tagStyle);
+            }
         }
 
-        $badges = [];
-        foreach ($this->tags as $tag) {
-            $color = $this->getTagColorByName($tag);
-            $badges[] = "\033[38;2;{$color[0]};{$color[1]};{$color[2]}m[{$tag}]\033[0m";
-        }
+        $lines[] = Line::fromSpans(...$tagSpans);
 
-        return implode(' ', $badges);
+        return Text::fromLines(...$lines);
     }
 
     /**

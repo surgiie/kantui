@@ -23,6 +23,7 @@ use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\Widget;
 
+use function Laravel\Prompts\clear;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
@@ -226,8 +227,15 @@ class MainWidget implements AppWidget
         }
 
         if ($event->char === 'c') {
-            return function () {
-                $this->manager->getSearchFilter()->clear();
+            $searchFilter = $this->manager->getSearchFilter();
+
+            if (! $searchFilter->isActive()) {
+                return false; // No active filters to clear
+            }
+
+            return function () use ($searchFilter) {
+
+                $searchFilter->clear();
 
                 return $this->restartApp($this->activeType ?? TodoType::TODO, new Cursor(0, Cursor::INITIAL_PAGE));
             };
@@ -523,6 +531,8 @@ class MainWidget implements AppWidget
      */
     protected function handleSearch(): void
     {
+        clear();
+
         $query = text(
             label: 'Search Query',
             placeholder: 'Enter search query...',
@@ -537,6 +547,8 @@ class MainWidget implements AppWidget
      */
     protected function handleFilterByUrgency(): void
     {
+        clear();
+
         $options = [
             'all' => 'All Urgencies',
             ...array_combine(

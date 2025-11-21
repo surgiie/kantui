@@ -16,6 +16,7 @@ use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\Widget;
 
+use function Laravel\Prompts\clear;
 use function Laravel\Prompts\info;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -58,7 +59,7 @@ class DataManager implements DataManagerInterface
     /**
      * The todo that is currently active by cursor.
      */
-    protected Todo $activeTodo;
+    protected ?Todo $activeTodo = null;
 
     /**
      * The active todo index in its collection.
@@ -142,12 +143,6 @@ class DataManager implements DataManagerInterface
                     function ($todo) use ($type) {
                         unset($todo['type']);
                         $todo['urgency'] = TodoUrgency::from($todo['urgency']);
-
-                        // Handle legacy data that might have 'title' instead of 'tags'
-                        if (isset($todo['title']) && ! isset($todo['tags'])) {
-                            $todo['tags'] = [$todo['title']];
-                            unset($todo['title']);
-                        }
 
                         // Ensure tags is always an array
                         if (! isset($todo['tags'])) {
@@ -246,9 +241,10 @@ class DataManager implements DataManagerInterface
         if (! $activeTodo) {
             return;
         }
+        clear();
         info('Edit Todo:');
-        $tagsInput = text('Tags (comma-separated):', default: implode(', ', $activeTodo->tags));
         $description = textarea('Description:', default: $activeTodo->description, required: true);
+        $tagsInput = text('Tags (comma-separated):', default: implode(', ', $activeTodo->tags));
         $urgency = select(
             label: 'Urgency:',
             options: [
@@ -259,8 +255,8 @@ class DataManager implements DataManagerInterface
             ],
             default: $activeTodo->urgency->value
         );
-        $activeTodo->tags = array_map('trim', array_filter(explode(',', $tagsInput)));
         $activeTodo->description = $description;
+        $activeTodo->tags = array_map('trim', array_filter(explode(',', $tagsInput)));
         $activeTodo->urgency = TodoUrgency::from($urgency);
         $this->writeTodos();
     }
@@ -275,11 +271,12 @@ class DataManager implements DataManagerInterface
      */
     public function createInteractively(): Todo
     {
+        clear();
         info('Create Todo:');
 
-        $tagsInput = text('Tags (comma-separated):');
-
         $description = textarea('Description:', required: true);
+
+        $tagsInput = text('Tags (comma-separated):');
 
         $urgency = select(
             label: 'Urgency:',
