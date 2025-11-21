@@ -65,7 +65,7 @@ class SearchFilter
     /**
      * Check if a todo matches the current search query.
      *
-     * Searches in both title and description (case-insensitive).
+     * Searches in tags and description (case-insensitive).
      *
      * @param  Todo  $todo  The todo to check
      * @return bool True if the todo matches the search query
@@ -77,10 +77,17 @@ class SearchFilter
         }
 
         $query = strtolower($this->searchQuery);
-        $title = strtolower($todo->title);
         $description = strtolower($todo->description);
 
-        return str_contains($title, $query) || str_contains($description, $query);
+        // Check if query matches any tag
+        foreach ($todo->tags as $tag) {
+            if (str_contains(strtolower($tag), $query)) {
+                return true;
+            }
+        }
+
+        // Check description
+        return str_contains($description, $query);
     }
 
     /**

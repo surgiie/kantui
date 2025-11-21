@@ -50,12 +50,12 @@ it('can clear urgency filter', function () {
     expect($this->filter->getUrgencyFilter())->toBeNull();
 });
 
-it('matches todo with search query in title', function () {
+it('matches todo with search query in tags', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug', 'authentication'],
         id: '123',
-        title: 'Fix bug in authentication',
         description: 'User login is broken',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -70,8 +70,8 @@ it('matches todo with search query in description', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'User authentication is broken',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -86,8 +86,8 @@ it('search is case insensitive', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['Fix', 'Bug'],
         id: '123',
-        title: 'Fix Bug',
         description: 'Something',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -102,8 +102,8 @@ it('does not match todo without search query', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'User login is broken',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -118,8 +118,8 @@ it('matches any todo when no search query is set', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'User login is broken',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -132,8 +132,8 @@ it('matches todo with correct urgency', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'Something urgent',
         urgency: TodoUrgency::URGENT,
         created_at: '2024-01-01 00:00:00'
@@ -148,8 +148,8 @@ it('does not match todo with different urgency', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'Something urgent',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -164,8 +164,8 @@ it('matches any todo when no urgency filter is set', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['bug'],
         id: '123',
-        title: 'Fix bug',
         description: 'Something',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'
@@ -178,8 +178,8 @@ it('matches todo with both search and urgency filters', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['authentication', 'bug'],
         id: '123',
-        title: 'Fix authentication bug',
         description: 'Something',
         urgency: TodoUrgency::URGENT,
         created_at: '2024-01-01 00:00:00'
@@ -195,8 +195,8 @@ it('does not match todo when search matches but urgency does not', function () {
     $todo = new Todo(
         $this->context,
         TodoType::TODO,
+        tags: ['authentication', 'bug'],
         id: '123',
-        title: 'Fix authentication bug',
         description: 'Something',
         urgency: TodoUrgency::NORMAL,
         created_at: '2024-01-01 00:00:00'

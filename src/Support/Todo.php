@@ -22,8 +22,8 @@ use PhpTui\Tui\Widget\Widget;
  * Represents a single todo item in the kanban board.
  *
  * This class encapsulates all data and presentation logic for a todo item,
- * including its title, description, urgency level, creation timestamp, and
- * the visual widget representation in the terminal UI.
+ * including its tags, description, urgency level, creation timestamp, and
+ * the visual widget representation in the terminal UI with color-coded tag badges.
  */
 class Todo implements Arrayable
 {
@@ -43,6 +43,20 @@ class Todo implements Arrayable
     private const COLOR_LOW = [164, 208, 216];
 
     /**
+     * Tag color palette (cycles through for multiple tags).
+     */
+    private const TAG_COLORS = [
+        [0, 150, 255],    // Blue
+        [46, 197, 70],    // Green
+        [255, 193, 7],    // Yellow
+        [220, 53, 69],    // Red
+        [138, 43, 226],   // Purple
+        [255, 127, 80],   // Coral
+        [32, 178, 170],   // Teal
+        [255, 105, 180],  // Pink
+    ];
+
+    /**
      * Layout percentage constants.
      */
     private const LAYOUT_TITLE_PERCENTAGE = 30;
@@ -56,7 +70,7 @@ class Todo implements Arrayable
      *
      * @param  Context  $context  The application context for configuration access
      * @param  TodoType  $type  The current state of the todo (TODO, IN_PROGRESS, DONE)
-     * @param  string  $title  The todo item title
+     * @param  array  $tags  Array of tag strings for categorizing the todo
      * @param  string  $id  Unique identifier (UUID) for the todo
      * @param  string  $description  Detailed description of the todo
      * @param  TodoUrgency  $urgency  The urgency level (defaults to NORMAL)
@@ -65,7 +79,7 @@ class Todo implements Arrayable
     public function __construct(
         protected Context $context,
         public TodoType $type,
-        public string $title,
+        public array $tags,
         public string $id,
         public string $description,
         public TodoUrgency $urgency = TodoUrgency::NORMAL,
@@ -76,7 +90,7 @@ class Todo implements Arrayable
      * Get the widget for the todo item.
      *
      * Creates a visual representation of the todo using PhpTui widgets.
-     * The widget displays the urgency label, creation date, title, and description.
+     * The widget displays the urgency label, creation date, tag badges, and description.
      * When active, the widget has a highlighted background.
      *
      * @param  bool  $active  Whether this todo is currently selected/active
@@ -93,6 +107,9 @@ class Todo implements Arrayable
         }
 
         $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->getTimezone());
+
+        // Build tag badges string
+        $tagBadges = $this->buildTagBadges($active);
 
         return BlockWidget::default()
             ->borders(Borders::ALL)
@@ -124,13 +141,34 @@ class Todo implements Arrayable
                             ),
                         ParagraphWidget::fromText(
                             Text::fromString(
-                                $this->title.PHP_EOL.PHP_EOL.
+                                $tagBadges.PHP_EOL.
                                 $this->description
                             )
                         )->style($style)
                     )
             );
 
+    }
+
+    /**
+     * Build colored tag badges for display.
+     *
+     * @param  bool  $active  Whether this todo is currently active
+     * @return string The formatted tag badges string
+     */
+    protected function buildTagBadges(bool $active): string
+    {
+        if (empty($this->tags)) {
+            return '[No Tags]';
+        }
+
+        $badges = [];
+        foreach ($this->tags as $tag) {
+            $color = $this->getTagColorByName($tag);
+            $badges[] = "\033[38;2;{$color[0]};{$color[1]};{$color[2]}m[{$tag}]\033[0m";
+        }
+
+        return implode(' ', $badges);
     }
 
     /**
@@ -168,10 +206,35 @@ class Todo implements Arrayable
     {
         return [
             'type' => $this->type,
-            'title' => $this->title,
+            'tags' => $this->tags,
             'description' => $this->description,
             'urgency' => $this->urgency->value,
             'created_at' => $this->created_at,
         ];
+    }
+
+    /**
+     * Get color for a specific tag based on its index.
+     *
+     * @param  int  $index  The index of the tag
+     * @return array RGB color array
+     */
+    protected function getTagColor(int $index): array
+    {
+        return self::TAG_COLORS[$index % count(self::TAG_COLORS)];
+    }
+
+    /**
+     * Generate a color for a tag based on its name hash.
+     *
+     * @param  string  $tag  The tag name
+     * @return array RGB color array
+     */
+    protected function getTagColorByName(string $tag): array
+    {
+        $hash = crc32($tag);
+        $index = abs($hash) % count(self::TAG_COLORS);
+
+        return self::TAG_COLORS[$index];
     }
 }

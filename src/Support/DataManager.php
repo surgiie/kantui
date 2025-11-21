@@ -143,6 +143,17 @@ class DataManager implements DataManagerInterface
                         unset($todo['type']);
                         $todo['urgency'] = TodoUrgency::from($todo['urgency']);
 
+                        // Handle legacy data that might have 'title' instead of 'tags'
+                        if (isset($todo['title']) && ! isset($todo['tags'])) {
+                            $todo['tags'] = [$todo['title']];
+                            unset($todo['title']);
+                        }
+
+                        // Ensure tags is always an array
+                        if (! isset($todo['tags'])) {
+                            $todo['tags'] = [];
+                        }
+
                         return new Todo(
                             $this->context,
                             TodoType::from($type),
@@ -226,7 +237,7 @@ class DataManager implements DataManagerInterface
     /**
      * Edit the active todo item interactively using prompts.
      *
-     * Displays interactive prompts for editing the title, description,
+     * Displays interactive prompts for editing the tags, description,
      * and urgency of the currently active todo. Saves changes to disk.
      */
     public function editInteractively(): void
@@ -236,7 +247,7 @@ class DataManager implements DataManagerInterface
             return;
         }
         info('Edit Todo:');
-        $title = text('Title:', default: $activeTodo->title);
+        $tagsInput = text('Tags (comma-separated):', default: implode(', ', $activeTodo->tags));
         $description = textarea('Description:', default: $activeTodo->description, required: true);
         $urgency = select(
             label: 'Urgency:',
@@ -248,7 +259,7 @@ class DataManager implements DataManagerInterface
             ],
             default: $activeTodo->urgency->value
         );
-        $activeTodo->title = $title;
+        $activeTodo->tags = array_map('trim', array_filter(explode(',', $tagsInput)));
         $activeTodo->description = $description;
         $activeTodo->urgency = TodoUrgency::from($urgency);
         $this->writeTodos();
@@ -257,7 +268,7 @@ class DataManager implements DataManagerInterface
     /**
      * Create a new todo item and save it to the data file.
      *
-     * Displays interactive prompts for creating a new todo with title,
+     * Displays interactive prompts for creating a new todo with tags,
      * description, and urgency. The todo is added to the TODO column.
      *
      * @return Todo The newly created todo item
@@ -266,7 +277,7 @@ class DataManager implements DataManagerInterface
     {
         info('Create Todo:');
 
-        $title = text('Title:');
+        $tagsInput = text('Tags (comma-separated):');
 
         $description = textarea('Description:', required: true);
 
@@ -282,11 +293,13 @@ class DataManager implements DataManagerInterface
 
         $created_at = Carbon::now($this->context->getTimezone())->format(self::DATE_FORMAT);
 
+        $tags = array_map('trim', array_filter(explode(',', $tagsInput)));
+
         $todo = new Todo(
             $this->context,
             TodoType::TODO,
+            tags: $tags,
             id: Str::uuid()->toString(),
-            title: $title,
             description: $description,
             urgency: TodoUrgency::from($urgency),
             created_at: $created_at
