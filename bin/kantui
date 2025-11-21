@@ -25,6 +25,9 @@ try {
 
     exit($app->run());
 } catch (Throwable $e) {
+    // Ensure terminal is cleaned up before showing error
+    App::cleanupTerminal();
+
     if (filter_var(getenv('KANTUI_DEBUG'), FILTER_VALIDATE_BOOLEAN)) {
         throw $e;
     } else {
