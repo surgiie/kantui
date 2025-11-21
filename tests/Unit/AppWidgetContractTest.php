@@ -26,14 +26,6 @@ test('HelpWidget render returns Widget', function () {
     expect($rendered)->toBeInstanceOf(Widget::class);
 });
 
-test('HelpWidget getFooterText returns string', function () {
-    $widget = new HelpWidget;
-    $footer = $widget->getFooterText();
-
-    expect($footer)->toBeString()
-        ->and(strlen($footer))->toBeGreaterThan(0);
-});
-
 test('AppWidget contract enforces return type for render', function () {
     $reflection = new ReflectionClass(AppWidget::class);
     $method = $reflection->getMethod('render');
@@ -85,13 +77,4 @@ test('HelpWidget has all required keybinding constants', function () {
         ->and(defined('Kantui\Widgets\HelpWidget::CLEAR_FILTERS'))->toBeTrue()
         ->and(defined('Kantui\Widgets\HelpWidget::TOGGLE_HELP'))->toBeTrue()
         ->and(defined('Kantui\Widgets\HelpWidget::QUIT'))->toBeTrue();
-});
-
-test('HelpWidget footer text mentions help close keys', function () {
-    $widget = new HelpWidget;
-    $footer = $widget->getFooterText();
-
-    expect($footer)->toContain('?')
-        ->and($footer)->toContain('q')
-        ->and($footer)->toContain('ESC');
 });

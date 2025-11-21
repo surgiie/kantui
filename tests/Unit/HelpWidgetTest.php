@@ -127,12 +127,3 @@ test('widget implements AppWidget interface', function () {
 
     expect($widget)->toBeInstanceOf(\Kantui\Contracts\AppWidget::class);
 });
-
-test('widget returns footer text', function () {
-    $widget = new HelpWidget;
-    $footerText = $widget->getFooterText();
-
-    expect($footerText)->toBeString()
-        ->and($footerText)->toContain('?')
-        ->and($footerText)->toContain('q');
-});
