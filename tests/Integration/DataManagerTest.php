@@ -9,7 +9,7 @@ use Kantui\Support\Todo;
 beforeEach(function () {
     $this->testDir = setupTestEnvironment();
     $this->context = new Context('test');
-    $this->context->ensureDefaults();
+    $this->context->ensureDefaultFiles();
 });
 
 afterEach(function () {

@@ -19,7 +19,7 @@ const KANTUI_VERSION = '0.5.0';
 try {
     $context = new Context(getenv('KANTUI_CONTEXT') ?: 'default');
 
-    $context->ensureDefaults();
+    $context->ensureDefaultFiles();
 
     $app = new App($context, KANTUI_VERSION);
 

@@ -44,5 +44,5 @@ interface ContextInterface
     /**
      * Ensure the context has default files present for writing.
      */
-    public function ensureDefaults(): void;
+    public function ensureDefaultFiles(): void;
 }

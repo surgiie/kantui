@@ -108,7 +108,7 @@ if (! $args['force'] && file_exists($path = $context->path('data.json'))) {
     exit(1);
 }
 
-$context->ensureDefaults();
+$context->ensureDefaultFiles();
 
 // Initialize Faker
 $faker = Faker\Factory::create();
