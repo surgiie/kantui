@@ -12,6 +12,8 @@ use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
 use PhpTui\Tui\Layout\Constraint;
 use PhpTui\Tui\Style\Style;
+use PhpTui\Tui\Text\Line;
+use PhpTui\Tui\Text\Span;
 use PhpTui\Tui\Text\Text;
 use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
@@ -22,8 +24,8 @@ use PhpTui\Tui\Widget\Widget;
  * Represents a single todo item in the kanban board.
  *
  * This class encapsulates all data and presentation logic for a todo item,
- * including its title, description, urgency level, creation timestamp, and
- * the visual widget representation in the terminal UI.
+ * including its tags, description, urgency level, creation timestamp, and
+ * the visual widget representation in the terminal UI with color-coded tag badges.
  */
 class Todo implements Arrayable
 {
@@ -43,20 +45,39 @@ class Todo implements Arrayable
     private const COLOR_LOW = [164, 208, 216];
 
     /**
+     * Tag color palette (cycles through for multiple tags).
+     */
+    private const TAG_COLORS = [
+        [0, 150, 255],    // Blue
+        [46, 197, 70],    // Green
+        [255, 193, 7],    // Yellow
+        [220, 53, 69],    // Red
+        [138, 43, 226],   // Purple
+        [255, 127, 80],   // Coral
+        [32, 178, 170],   // Teal
+        [255, 105, 180],  // Pink
+    ];
+
+    /**
      * Layout percentage constants.
      */
-    private const LAYOUT_TITLE_PERCENTAGE = 30;
+    private const LAYOUT_HEADER_PERCENTAGE = 30;
 
     private const LAYOUT_CONTENT_PERCENTAGE = 70;
 
     private const LAYOUT_HALF_PERCENTAGE = 50;
 
     /**
+     * Maximum description length before truncation.
+     */
+    private const MAX_DESCRIPTION_LENGTH = 100;
+
+    /**
      * Create a new todo item instance.
      *
      * @param  Context  $context  The application context for configuration access
      * @param  TodoType  $type  The current state of the todo (TODO, IN_PROGRESS, DONE)
-     * @param  string  $title  The todo item title
+     * @param  array  $tags  Array of tag strings for categorizing the todo
      * @param  string  $id  Unique identifier (UUID) for the todo
      * @param  string  $description  Detailed description of the todo
      * @param  TodoUrgency  $urgency  The urgency level (defaults to NORMAL)
@@ -65,7 +86,7 @@ class Todo implements Arrayable
     public function __construct(
         protected Context $context,
         public TodoType $type,
-        public string $title,
+        public array $tags,
         public string $id,
         public string $description,
         public TodoUrgency $urgency = TodoUrgency::NORMAL,
@@ -76,7 +97,7 @@ class Todo implements Arrayable
      * Get the widget for the todo item.
      *
      * Creates a visual representation of the todo using PhpTui widgets.
-     * The widget displays the urgency label, creation date, title, and description.
+     * The widget displays the urgency label, creation date, tag badges, and description.
      * When active, the widget has a highlighted background.
      *
      * @param  bool  $active  Whether this todo is currently selected/active
@@ -94,13 +115,22 @@ class Todo implements Arrayable
 
         $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->getTimezone());
 
+        // Build text content with styled tag badges
+        $contentText = $this->buildContentText($active, $style);
+
+        // Create a background-only style for the content paragraph (no foreground to preserve span colors)
+        $contentBgStyle = Style::default();
+        if ($active) {
+            $contentBgStyle = $contentBgStyle->bg(RgbColor::fromRgb(...self::COLOR_DARK_BG));
+        }
+
         return BlockWidget::default()
             ->borders(Borders::ALL)
             ->widget(
                 GridWidget::default()
                     ->direction(Direction::Vertical)
                     ->constraints(
-                        Constraint::percentage(self::LAYOUT_TITLE_PERCENTAGE),
+                        Constraint::percentage(self::LAYOUT_HEADER_PERCENTAGE),
                         Constraint::percentage(self::LAYOUT_CONTENT_PERCENTAGE),
                     )->widgets(
                         GridWidget::default()
@@ -122,15 +152,68 @@ class Todo implements Arrayable
                                     )
                                 )->style($style)->alignment(HorizontalAlignment::Right)
                             ),
-                        ParagraphWidget::fromText(
-                            Text::fromString(
-                                $this->title.PHP_EOL.PHP_EOL.
-                                $this->description
-                            )
-                        )->style($style)
+                        ParagraphWidget::fromText($contentText)->style($contentBgStyle)
                     )
             );
 
+    }
+
+    /**
+     * Build content text with styled tag badges.
+     *
+     * @param  bool  $active  Whether this todo is currently active
+     * @param  Style  $style  The base style for the text
+     * @return Text The formatted content with styled tags
+     */
+    protected function buildContentText(bool $active, Style $style): Text
+    {
+        $lines = [];
+
+        // First line: description with white text (no background, applied at paragraph level)
+        // Replace newlines with spaces to keep description on a single line
+        $descriptionStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+        $cleanDescription = trim(preg_replace('/\s+/', ' ', $this->description));
+
+        // Truncate description if it exceeds max length
+        if (mb_strlen($cleanDescription) > self::MAX_DESCRIPTION_LENGTH) {
+            $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3).'...';
+        }
+
+        $lines[] = Line::fromSpans(Span::styled($cleanDescription, $descriptionStyle));
+
+        // Add empty line for spacing
+        $emptyStyle = Style::default();
+        $lines[] = Line::fromSpans(Span::styled('', $emptyStyle));
+
+        // Third line: styled tag badges with "Tags: " prefix
+        $tagSpans = [];
+
+        // Add "Tags: " prefix (no background, applied at paragraph level)
+        $prefixStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+        $tagSpans[] = Span::styled('Tags: ', $prefixStyle);
+
+        if (empty($this->tags)) {
+            $noTagsStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+            $tagSpans[] = Span::styled('[No Tags]', $noTagsStyle);
+        } else {
+            foreach ($this->tags as $index => $tag) {
+                // Add space between tags
+                if ($index > 0) {
+                    $spaceStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
+                    $tagSpans[] = Span::styled(' ', $spaceStyle);
+                }
+
+                // Tag with color (no background, applied at paragraph level)
+                $color = $this->getTagColorByName($tag);
+                $tagStyle = Style::default()->fg(RgbColor::fromRgb(...$color));
+
+                $tagSpans[] = Span::styled("[{$tag}]", $tagStyle);
+            }
+        }
+
+        $lines[] = Line::fromSpans(...$tagSpans);
+
+        return Text::fromLines(...$lines);
     }
 
     /**
@@ -168,10 +251,45 @@ class Todo implements Arrayable
     {
         return [
             'type' => $this->type,
-            'title' => $this->title,
+            'tags' => $this->tags,
             'description' => $this->description,
             'urgency' => $this->urgency->value,
             'created_at' => $this->created_at,
         ];
+    }
+
+    /**
+     * Get the context instance.
+     *
+     * @return Context The application context
+     */
+    public function getContext(): Context
+    {
+        return $this->context;
+    }
+
+    /**
+     * Get color for a specific tag based on its index.
+     *
+     * @param  int  $index  The index of the tag
+     * @return array RGB color array
+     */
+    protected function getTagColor(int $index): array
+    {
+        return self::TAG_COLORS[$index % count(self::TAG_COLORS)];
+    }
+
+    /**
+     * Generate a color for a tag based on its name hash.
+     *
+     * @param  string  $tag  The tag name
+     * @return array RGB color array
+     */
+    protected function getTagColorByName(string $tag): array
+    {
+        $hash = crc32($tag);
+        $index = abs($hash) % count(self::TAG_COLORS);
+
+        return self::TAG_COLORS[$index];
     }
 }

@@ -9,7 +9,7 @@ use Kantui\Support\Todo;
 beforeEach(function () {
     $this->testDir = setupTestEnvironment();
     $this->context = new Context('test');
-    $this->context->ensureDefaults();
+    $this->context->ensureDefaultFiles();
 });
 
 afterEach(function () {
@@ -41,7 +41,7 @@ test('get by type returns paginated results', function () {
         'todo' => [
             [
                 'id' => '123',
-                'title' => 'Test Todo',
+                'tags' => ['test'],
                 'description' => 'Test Description',
                 'urgency' => 'normal',
                 'created_at' => '2025-01-01 00:00:00',
@@ -66,7 +66,7 @@ test('delete removes todo', function () {
         'todo' => [
             [
                 'id' => '123',
-                'title' => 'Test Todo',
+                'tags' => ['test'],
                 'description' => 'Test Description',
                 'urgency' => 'normal',
                 'created_at' => '2025-01-01 00:00:00',
@@ -96,7 +96,7 @@ test('move changes todo type', function () {
         'todo' => [
             [
                 'id' => '123',
-                'title' => 'Test Todo',
+                'tags' => ['test', 'todo'],
                 'description' => 'Test Description',
                 'urgency' => 'normal',
                 'created_at' => '2025-01-01 00:00:00',
@@ -120,7 +120,7 @@ test('move changes todo type', function () {
 
     expect($todoItems)->toHaveCount(0)
         ->and($inProgressItems)->toHaveCount(1)
-        ->and($inProgressItems->first()->title)->toBe('Test Todo');
+        ->and($inProgressItems->first()->tags)->toBe(['test', 'todo']);
 });
 
 test('get last page items', function () {
@@ -135,7 +135,7 @@ test('get last page items', function () {
     for ($i = 1; $i <= 13; $i++) {
         $testData['todo'][] = [
             'id' => "id-$i",
-            'title' => "Todo $i",
+            'tags' => ["todo-$i"],
             'description' => "Description $i",
             'urgency' => 'normal',
             'created_at' => '2025-01-01 00:00:00',

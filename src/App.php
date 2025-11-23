@@ -27,7 +27,6 @@ use PhpTui\Tui\Widget\Widget;
 use Throwable;
 
 use function Amp\delay;
-use function Laravel\Prompts\clear;
 
 class App
 {
@@ -261,7 +260,6 @@ class App
      */
     public function restartApp(?TodoType $type = null, ?Cursor $cursor = null): int
     {
-        clear();
         $app = new self($this->context, $this->version, $cursor, $type);
 
         return $app->run();
