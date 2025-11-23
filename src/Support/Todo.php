@@ -176,7 +176,7 @@ class Todo implements Arrayable
 
         // Truncate description if it exceeds max length
         if (mb_strlen($cleanDescription) > self::MAX_DESCRIPTION_LENGTH) {
-            $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3) . '...';
+            $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3).'...';
         }
 
         $lines[] = Line::fromSpans(Span::styled($cleanDescription, $descriptionStyle));

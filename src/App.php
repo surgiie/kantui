@@ -27,7 +27,6 @@ use PhpTui\Tui\Widget\Widget;
 use Throwable;
 
 use function Amp\delay;
-use function Laravel\Prompts\clear;
 
 class App
 {
