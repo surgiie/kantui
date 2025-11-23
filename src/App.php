@@ -209,7 +209,11 @@ class App
                     $result = false;
                 }
 
-                // Handle the result
+                if ($result === false) {
+                    continue; // Event not handled, ignore
+                }
+
+                // Handle the result, null means widget decided app should quit.
                 if ($result === null) {
                     break 2; // Quit
                 }

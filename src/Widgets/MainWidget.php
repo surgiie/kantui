@@ -148,7 +148,7 @@ class MainWidget implements AppWidget
     public function handleCharKey(CharKeyEvent $event): callable|false|null
     {
         if ($event->modifiers !== KeyModifiers::NONE) {
-            return null;
+            return false;
         }
 
         if ($event->char === 'q') {

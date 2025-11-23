@@ -4,7 +4,7 @@ A minimal transparent php kanban TUI with vim-like keybindings.
 
 ![Tests](https://github.com/surgiie/kantui/actions/workflows/ci.yml/badge.svg)
 
-![kantui overview](https://i.imgur.com/lIZv28L.png)
+![kantui overview](https://i.imgur.com/SWJgCfH.png)
 
 
 ## Installation
