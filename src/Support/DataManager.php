@@ -8,6 +8,13 @@ use Illuminate\Support\Str;
 use Kantui\Contracts\DataManagerInterface;
 use Kantui\Support\Enums\TodoType;
 use Kantui\Support\Enums\TodoUrgency;
+
+use function Laravel\Prompts\clear;
+use function Laravel\Prompts\info;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\textarea;
+
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Layout\Constraint;
@@ -15,12 +22,6 @@ use PhpTui\Tui\Text\Title;
 use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\Widget;
-
-use function Laravel\Prompts\clear;
-use function Laravel\Prompts\info;
-use function Laravel\Prompts\select;
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\textarea;
 
 /**
  * Manages todo data operations and persistence.
@@ -93,7 +94,7 @@ class DataManager implements DataManagerInterface
 
         // Initialize static search filter if not already set
         if (static::$searchFilter === null) {
-            static::$searchFilter = new SearchFilter;
+            static::$searchFilter = new SearchFilter();
         }
     }
 
@@ -325,6 +326,7 @@ class DataManager implements DataManagerInterface
 
         if ($result === false) {
             $dataPath = $this->context->path(self::DATA_FILE_NAME);
+
             throw new \RuntimeException("Failed to write todos to data file: {$dataPath}");
         }
 

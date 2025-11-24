@@ -43,7 +43,7 @@ class ConfigValidator
 
             if (! self::isValidType($value, $expectedType)) {
                 throw new RuntimeException(
-                    "Configuration key '{$key}' must be of type {$expectedType}, ".
+                    "Configuration key '{$key}' must be of type {$expectedType}, " .
                     "but got {$actualType}"
                 );
             }

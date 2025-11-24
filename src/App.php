@@ -2,6 +2,8 @@
 
 namespace Kantui;
 
+use function Amp\delay;
+
 use Kantui\Contracts\AppWidget;
 use Kantui\Support\Context;
 use Kantui\Support\Cursor;
@@ -25,8 +27,6 @@ use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 use Throwable;
-
-use function Amp\delay;
 
 class App
 {
@@ -95,7 +95,7 @@ class App
     /**
      * Get the application instance.
      */
-    public static function getInstance(): App
+    public static function getInstance(): self
     {
         if (! isset(static::$app)) {
             throw new \RuntimeException('App instance not set.');
@@ -181,6 +181,7 @@ class App
         } catch (Throwable $err) {
             static::cleanupTerminal();
             static::$terminal->execute(Actions::clear(ClearType::All));
+
             throw $err;
         }
     }

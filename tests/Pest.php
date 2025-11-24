@@ -35,7 +35,7 @@
 
 function setupTestEnvironment(): string
 {
-    $testDir = sys_get_temp_dir().'/kantui-test-'.uniqid();
+    $testDir = sys_get_temp_dir() . '/kantui-test-' . uniqid();
     putenv("KANTUI_HOME={$testDir}");
 
     return $testDir;

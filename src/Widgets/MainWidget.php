@@ -10,6 +10,11 @@ use Kantui\Support\Cursor;
 use Kantui\Support\DataManager;
 use Kantui\Support\Enums\TodoType;
 use Kantui\Support\Enums\TodoUrgency;
+
+use function Laravel\Prompts\clear;
+use function Laravel\Prompts\select;
+use function Laravel\Prompts\text;
+
 use PhpTui\Term\Event\CharKeyEvent;
 use PhpTui\Term\Event\CodedKeyEvent;
 use PhpTui\Term\KeyCode;
@@ -22,10 +27,6 @@ use PhpTui\Tui\Text\Title;
 use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\Widget;
-
-use function Laravel\Prompts\clear;
-use function Laravel\Prompts\select;
-use function Laravel\Prompts\text;
 
 class MainWidget implements AppWidget
 {
@@ -234,7 +235,6 @@ class MainWidget implements AppWidget
             }
 
             return function () use ($searchFilter) {
-
                 $searchFilter->clear();
 
                 return $this->restartApp($this->activeType ?? TodoType::TODO, new Cursor(0, Cursor::INITIAL_PAGE));

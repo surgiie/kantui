@@ -8,7 +8,7 @@ use Kantui\Support\Todo;
 
 beforeEach(function () {
     $this->context = new Context('default');
-    $this->filter = new SearchFilter;
+    $this->filter = new SearchFilter();
 });
 
 it('can set and get search query', function () {

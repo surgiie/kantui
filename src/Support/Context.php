@@ -4,9 +4,10 @@ namespace Kantui\Support;
 
 use Illuminate\Support\Collection;
 use Kantui\Contracts\ContextInterface;
-use RuntimeException;
 
 use function Kantui\kantui_path;
+
+use RuntimeException;
 
 /**
  * Manages application context and configuration.
@@ -93,14 +94,14 @@ class Context implements ContextInterface
         $configPath = null;
 
         // context config
-        if (is_file($configPath = $this->path('/'.self::CONFIG_FILE_NAME))) {
+        if (is_file($configPath = $this->path('/' . self::CONFIG_FILE_NAME))) {
             $contents = file_get_contents($configPath);
             if ($contents === false) {
                 throw new RuntimeException("Failed to read config file: $configPath");
             }
             $config = json_decode($contents, true, 512, JSON_THROW_ON_ERROR);
             // global config
-        } elseif (is_file($configPath = kantui_path('/'.self::CONFIG_FILE_NAME))) {
+        } elseif (is_file($configPath = kantui_path('/' . self::CONFIG_FILE_NAME))) {
             $contents = file_get_contents($configPath);
             if ($contents === false) {
                 throw new RuntimeException("Failed to read config file: $configPath");

@@ -14,13 +14,13 @@ test('AppWidget interface defines required methods', function () {
 });
 
 test('HelpWidget implements AppWidget interface', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     expect($widget)->toBeInstanceOf(AppWidget::class);
 });
 
 test('HelpWidget render returns Widget', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
     $rendered = $widget->render();
 
     expect($rendered)->toBeInstanceOf(Widget::class);

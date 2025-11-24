@@ -146,7 +146,7 @@ class Todo implements Arrayable
                                 )->style($urgencyStyle),
                                 ParagraphWidget::fromText(
                                     Text::fromString(
-                                        'Created: '.($this->context->config('human_readable_date', true)
+                                        'Created: ' . ($this->context->config('human_readable_date', true)
                                             ? $createdAt->diffForHumans()
                                             : $createdAt->toDateTimeString())
                                     )
@@ -155,7 +155,6 @@ class Todo implements Arrayable
                         ParagraphWidget::fromText($contentText)->style($contentBgStyle)
                     )
             );
-
     }
 
     /**
@@ -176,7 +175,7 @@ class Todo implements Arrayable
 
         // Truncate description if it exceeds max length
         if (mb_strlen($cleanDescription) > self::MAX_DESCRIPTION_LENGTH) {
-            $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3).'...';
+            $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3) . '...';
         }
 
         $lines[] = Line::fromSpans(Span::styled($cleanDescription, $descriptionStyle));

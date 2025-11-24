@@ -5,7 +5,7 @@ use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Style\Style;
 
 test('widget renders with default settings', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
     $rendered = $widget->render();
 
     expect($rendered)->toBeInstanceOf(GridWidget::class);
@@ -20,7 +20,7 @@ test('widget renders with custom style', function () {
 });
 
 test('widget shows reorder bindings by default', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     // Use reflection to access private buildHelpText method
     $reflection = new ReflectionClass($widget);
@@ -46,7 +46,7 @@ test('widget hides reorder bindings when disabled', function () {
 });
 
 test('widget contains all navigation bindings', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     $reflection = new ReflectionClass($widget);
     $method = $reflection->getMethod('buildHelpText');
@@ -61,7 +61,7 @@ test('widget contains all navigation bindings', function () {
 });
 
 test('widget contains all item action bindings', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     $reflection = new ReflectionClass($widget);
     $method = $reflection->getMethod('buildHelpText');
@@ -77,7 +77,7 @@ test('widget contains all item action bindings', function () {
 });
 
 test('widget contains all filter and search bindings', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     $reflection = new ReflectionClass($widget);
     $method = $reflection->getMethod('buildHelpText');
@@ -91,7 +91,7 @@ test('widget contains all filter and search bindings', function () {
 });
 
 test('widget contains all application bindings', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     $reflection = new ReflectionClass($widget);
     $method = $reflection->getMethod('buildHelpText');
@@ -123,7 +123,7 @@ test('widget constants match expected values', function () {
 });
 
 test('widget implements AppWidget interface', function () {
-    $widget = new HelpWidget;
+    $widget = new HelpWidget();
 
     expect($widget)->toBeInstanceOf(\Kantui\Contracts\AppWidget::class);
 });

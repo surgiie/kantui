@@ -154,7 +154,7 @@ class TodoDetailWidget implements AppWidget
 
         // Created date
         $createdAt = Carbon::parse($this->todo->created_at)->setTimezone($this->todo->getContext()->getTimezone());
-        $dateStr = $createdAt->format('Y-m-d H:i:s').' ('.$createdAt->diffForHumans().')';
+        $dateStr = $createdAt->format('Y-m-d H:i:s') . ' (' . $createdAt->diffForHumans() . ')';
         $lines[] = Line::fromSpans(
             Span::styled('  Created:     ', $labelStyle),
             Span::styled($dateStr, $valueStyle)
@@ -200,7 +200,7 @@ class TodoDetailWidget implements AppWidget
 
         // Description label
         $lines[] = Line::fromSpans(Span::styled('  Description:', $labelStyle));
-        $lines[] = Line::fromString('  '.str_repeat('─', 70));
+        $lines[] = Line::fromString('  ' . str_repeat('─', 70));
 
         // Split description into lines, preserving original line breaks
         $descriptionLines = explode("\n", $this->todo->description);
@@ -209,7 +209,7 @@ class TodoDetailWidget implements AppWidget
             $wrapped = wordwrap($line, 70, "\n", false);
             $wrappedLines = explode("\n", $wrapped);
             foreach ($wrappedLines as $wrappedLine) {
-                $lines[] = Line::fromSpans(Span::styled('  '.$wrappedLine, $valueStyle));
+                $lines[] = Line::fromSpans(Span::styled('  ' . $wrappedLine, $valueStyle));
             }
         }
 

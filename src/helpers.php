@@ -19,7 +19,6 @@ if (! function_exists('kantui_path')) {
      */
     function kantui_path($path = ''): string
     {
-
         $path = trim($path, '/');
 
         if (getenv('KANTUI_HOME')) {
@@ -69,7 +68,6 @@ if (! function_exists('default_style')) {
 }
 
 if (! function_exists('dd')) {
-
     /**
      * Reset terminal state and dump and die.
      *

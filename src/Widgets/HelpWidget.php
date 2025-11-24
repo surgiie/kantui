@@ -193,7 +193,7 @@ class HelpWidget implements AppWidget
 
         foreach ($sections as $sectionName => $bindings) {
             $lines[] = "  $sectionName";
-            $lines[] = '  '.str_repeat('─', 50);
+            $lines[] = '  ' . str_repeat('─', 50);
 
             foreach ($bindings as $key => $description) {
                 $lines[] = sprintf('    %-15s  %s', $key, $description);
