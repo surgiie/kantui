@@ -272,7 +272,6 @@ class DataManager implements DataManagerInterface
      */
     public function createInteractively(): Todo
     {
-        clear();
         info('Create Todo:');
 
         $description = textarea('Description:', required: true);

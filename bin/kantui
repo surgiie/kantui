@@ -4,6 +4,8 @@
 use Kantui\App;
 use Kantui\Support\Context;
 
+use function Laravel\Prompts\clear;
+
 require file_exists(__DIR__ . '/../../../autoload.php') ? __DIR__ . '/../../../autoload.php' : __DIR__ . '/../vendor/autoload.php';
 
 set_error_handler(function ($severity, $message, $file, $line) {
@@ -23,7 +25,7 @@ try {
     $context->ensureDefaultFiles();
 
     $app = new App($context, KANTUI_VERSION);
-
+    clear();
     exit($app->run());
 } catch (Throwable $e) {
     // Ensure terminal is cleaned up before showing error

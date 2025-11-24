@@ -10,6 +10,9 @@ use Kantui\Support\Cursor;
 use Kantui\Support\DataManager;
 use Kantui\Support\Enums\TodoType;
 use Kantui\Widgets\MainWidget;
+
+use function Laravel\Prompts\clear;
+
 use PhpTui\Term\Actions;
 use PhpTui\Term\ClearType;
 use PhpTui\Term\Event\CharKeyEvent;
@@ -264,6 +267,8 @@ class App
      */
     public function restartApp(?TodoType $type = null, ?Cursor $cursor = null): int
     {
+        clear();
+
         $app = new self($this->context, $this->version, $cursor, $type);
 
         return $app->run();
