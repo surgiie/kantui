@@ -167,7 +167,7 @@ class MainWidget implements AppWidget
             };
         }
 
-        if ($event->char == 'e' && ! is_null($this->activeType)) {
+        if ($event->char == 'e' && ! is_null($this->manager->getActiveTodo())) {
             return function () {
                 $this->manager->editInteractively();
 

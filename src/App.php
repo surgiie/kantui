@@ -219,10 +219,9 @@ class App
                     break 2; // Quit
                 }
 
-                if (is_callable($result)) {
-                    $action = $result;
-                    break 2;
-                }
+                // At this point, $result must be callable (since false and null are already handled)
+                $action = $result;
+                break 2;
             }
 
             $this->display->draw($this->buildLayout());
