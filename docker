@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 if [ -z "$(which docker)" ]; then
@@ -34,12 +34,10 @@ FROM php:8.3-cli-alpine
 
 
 WORKDIR /app
-ARG UID=1000
-ARG GID=1000
 ARG PHP_EXTS="pcntl"
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN addgroup -g \$GID kantui && adduser -u \$UID -S kantui -G kantui
+RUN addgroup -g 1000 kantui && adduser -u 1000 -S kantui -G kantui
 RUN apk --no-cache update \\
     && apk --no-cache add \\
         vim \\
