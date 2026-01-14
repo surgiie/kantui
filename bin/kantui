@@ -17,7 +17,7 @@ set_error_handler(function ($severity, $message, $file, $line) {
     throw new RuntimeException($message . ' in ' . $file . ' at line: ' . $line);
 });
 
-const KANTUI_VERSION = '0.6.1';
+const KANTUI_VERSION = '0.6.2';
 
 try {
     $context = new Context(getenv('KANTUI_CONTEXT') ?: 'default');
