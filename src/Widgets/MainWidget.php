@@ -481,7 +481,22 @@ class MainWidget implements AppWidget
         }
 
         $todo = $this->manager->getActiveTodo();
-        $targetType = $this->activeType->opposite();
+
+        // When item is in progress, complete it (delete or move to done based on config)
+        if ($this->activeType === TodoType::IN_PROGRESS) {
+            if ($this->context->config('delete_done', false)) {
+                $this->manager->delete($todo);
+                $this->adjustCursorAfterDeletion();
+            } else {
+                $this->manager->move($todo, TodoType::DONE);
+                $this->adjustCursorAfterDeletion();
+            }
+
+            return;
+        }
+
+        // Move TODO items to IN_PROGRESS
+        $targetType = TodoType::IN_PROGRESS;
 
         $this->manager->move($todo, $targetType);
 
