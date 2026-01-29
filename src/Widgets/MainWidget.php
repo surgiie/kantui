@@ -196,6 +196,7 @@ class MainWidget implements AppWidget
             if (! $this->manager->getSearchFilter()->isActive()) {
                 $this->manager->repositionActiveItem(-1);
                 $this->moveCursorUp();
+                $this->refreshData();
             }
         }
 
@@ -204,6 +205,7 @@ class MainWidget implements AppWidget
             if (! $this->manager->getSearchFilter()->isActive()) {
                 $this->manager->repositionActiveItem(1);
                 $this->moveCursorDown();
+                $this->refreshData();
             }
         }
 
