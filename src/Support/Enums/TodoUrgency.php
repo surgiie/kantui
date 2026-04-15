@@ -26,4 +26,17 @@ enum TodoUrgency: string
     {
         return strtoupper($this->value);
     }
+
+    /**
+     * Get a value => label map of all urgency options for use in select prompts.
+     *
+     * @return array<string, string>
+     */
+    public static function selectOptions(): array
+    {
+        return array_combine(
+            array_column(self::cases(), 'value'),
+            array_map(fn ($case) => $case->label(), self::cases())
+        );
+    }
 }

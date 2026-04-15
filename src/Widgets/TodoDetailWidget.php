@@ -5,48 +5,34 @@ namespace Kantui\Widgets;
 use Carbon\Carbon;
 use Kantui\App;
 use Kantui\Contracts\AppWidget;
+use Kantui\Support\TagColors;
 use Kantui\Support\Todo;
+use Kantui\Widgets\Concerns\RendersAsDialog;
 use PhpTui\Term\Event\CharKeyEvent;
 use PhpTui\Term\Event\CodedKeyEvent;
 use PhpTui\Term\KeyCode;
 use PhpTui\Term\KeyModifiers;
 use PhpTui\Tui\Color\RgbColor;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
-use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
-use PhpTui\Tui\Layout\Constraint;
 use PhpTui\Tui\Style\Style;
 use PhpTui\Tui\Text\Line;
 use PhpTui\Tui\Text\Span;
 use PhpTui\Tui\Text\Text;
 use PhpTui\Tui\Text\Title;
 use PhpTui\Tui\Widget\Borders;
-use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 
 class TodoDetailWidget implements AppWidget
 {
+    use RendersAsDialog;
     /**
      * RGB color constants.
      */
     private const COLOR_WHITE = [255, 255, 255];
 
     private const COLOR_LABEL = [100, 150, 200];
-
-    /**
-     * Tag color palette (same as Todo class).
-     */
-    private const TAG_COLORS = [
-        [0, 150, 255],    // Blue
-        [46, 197, 70],    // Green
-        [255, 193, 7],    // Yellow
-        [220, 53, 69],    // Red
-        [138, 43, 226],   // Purple
-        [255, 127, 80],   // Coral
-        [32, 178, 170],   // Teal
-        [255, 105, 180],  // Pink
-    ];
 
     private Todo $todo;
 
@@ -77,19 +63,7 @@ class TodoDetailWidget implements AppWidget
                     ->alignment(HorizontalAlignment::Left)
             );
 
-        // Center the detail dialog with margins on both sides
-        return GridWidget::default()
-            ->direction(Direction::Horizontal)
-            ->constraints(
-                Constraint::percentage(10),  // Left margin
-                Constraint::percentage(80),  // Detail content
-                Constraint::percentage(10)   // Right margin
-            )
-            ->widgets(
-                BlockWidget::default(),  // Empty left block
-                $detailBlock,
-                BlockWidget::default()   // Empty right block
-            );
+        return $this->centeredDialog($detailBlock);
     }
 
     /**
@@ -186,7 +160,7 @@ class TodoDetailWidget implements AppWidget
                     $tagSpans[] = Span::styled(' ', $valueStyle);
                 }
 
-                $color = $this->getTagColorByName($tag);
+                $color = TagColors::forTag($tag);
                 $tagStyle = Style::default()->fg(RgbColor::fromRgb(...$color));
                 $tagSpans[] = Span::styled("[{$tag}]", $tagStyle);
             }
@@ -214,19 +188,5 @@ class TodoDetailWidget implements AppWidget
         }
 
         return Text::fromLines(...$lines);
-    }
-
-    /**
-     * Generate a color for a tag based on its name hash.
-     *
-     * @param  string  $tag  The tag name
-     * @return array RGB color array
-     */
-    protected function getTagColorByName(string $tag): array
-    {
-        $hash = crc32($tag);
-        $index = abs($hash) % count(self::TAG_COLORS);
-
-        return self::TAG_COLORS[$index];
     }
 }

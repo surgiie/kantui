@@ -45,7 +45,7 @@ class DataManager implements DataManagerInterface
     /**
      * The filename for the data file.
      */
-    private const DATA_FILE_NAME = 'data.json';
+    public const DATA_FILE_NAME = 'data.json';
 
     /**
      * Layout percentage for small item count (2 or less).
@@ -248,12 +248,7 @@ class DataManager implements DataManagerInterface
         $tagsInput = text('Tags (comma-separated):', default: implode(', ', $activeTodo->tags));
         $urgency = select(
             label: 'Urgency:',
-            options: [
-                TodoUrgency::LOW->value => TodoUrgency::LOW->label(),
-                TodoUrgency::NORMAL->value => TodoUrgency::NORMAL->label(),
-                TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
-                TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
-            ],
+            options: TodoUrgency::selectOptions(),
             default: $activeTodo->urgency->value
         );
         $activeTodo->description = $description;
@@ -280,12 +275,7 @@ class DataManager implements DataManagerInterface
 
         $urgency = select(
             label: 'Urgency:',
-            options: [
-                TodoUrgency::LOW->value => TodoUrgency::LOW->label(),
-                TodoUrgency::NORMAL->value => TodoUrgency::NORMAL->label(),
-                TodoUrgency::IMPORTANT->value => TodoUrgency::IMPORTANT->label(),
-                TodoUrgency::URGENT->value => TodoUrgency::URGENT->label(),
-            ]
+            options: TodoUrgency::selectOptions()
         );
 
         $created_at = Carbon::now($this->context->getTimezone())->format(self::DATE_FORMAT);

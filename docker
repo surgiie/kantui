@@ -68,9 +68,8 @@ rm -rf "$workspace"
 
 start_container() {
     # remove dangling containers that may have exited but still show up during docker ps -a
-    if docker ps -a | grep -q "$container_name"; then
-        docker stop "$container_name" >/dev/null 2>&1 || true
-        docker rm "$container_name" >/dev/null 2>&1 || true
+    if docker container inspect "$container_name" >/dev/null 2>&1; then
+        docker rm -f "$container_name" >/dev/null 2>&1 || true
     fi
 
     docker run --name "$container_name" -i ${USE_TTY} -d --user "$(id -u):$(id -g)" -v "$kantui_dir:/home/kantui/.kantui" "$image_tag" tail -f /dev/null

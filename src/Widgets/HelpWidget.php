@@ -4,24 +4,23 @@ namespace Kantui\Widgets;
 
 use Kantui\App;
 use Kantui\Contracts\AppWidget;
+use Kantui\Widgets\Concerns\RendersAsDialog;
 use PhpTui\Term\Event\CharKeyEvent;
 use PhpTui\Term\Event\CodedKeyEvent;
 use PhpTui\Term\KeyCode;
 use PhpTui\Term\KeyModifiers;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
-use PhpTui\Tui\Extension\Core\Widget\GridWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
-use PhpTui\Tui\Layout\Constraint;
 use PhpTui\Tui\Style\Style;
 use PhpTui\Tui\Text\Text;
 use PhpTui\Tui\Text\Title;
 use PhpTui\Tui\Widget\Borders;
-use PhpTui\Tui\Widget\Direction;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 
 class HelpWidget implements AppWidget
 {
+    use RendersAsDialog;
     // Navigation bindings
     public const MOVE_DOWN = 'j or ↓';
 
@@ -91,19 +90,7 @@ class HelpWidget implements AppWidget
                 )->alignment(HorizontalAlignment::Left)
             );
 
-        // Center the help dialog with margins on both sides
-        return GridWidget::default()
-            ->direction(Direction::Horizontal)
-            ->constraints(
-                Constraint::percentage(10),  // Left margin
-                Constraint::percentage(80),  // Help content
-                Constraint::percentage(10)   // Right margin
-            )
-            ->widgets(
-                BlockWidget::default(),  // Empty left block
-                $helpBlock,
-                BlockWidget::default()   // Empty right block
-            );
+        return $this->centeredDialog($helpBlock);
     }
 
     /**

@@ -45,20 +45,6 @@ class Todo implements Arrayable
     private const COLOR_LOW = [164, 208, 216];
 
     /**
-     * Tag color palette (cycles through for multiple tags).
-     */
-    private const TAG_COLORS = [
-        [0, 150, 255],    // Blue
-        [46, 197, 70],    // Green
-        [255, 193, 7],    // Yellow
-        [220, 53, 69],    // Red
-        [138, 43, 226],   // Purple
-        [255, 127, 80],   // Coral
-        [32, 178, 170],   // Teal
-        [255, 105, 180],  // Pink
-    ];
-
-    /**
      * Layout percentage constants.
      */
     private const LAYOUT_HEADER_PERCENTAGE = 30;
@@ -203,7 +189,7 @@ class Todo implements Arrayable
                 }
 
                 // Tag with color (no background, applied at paragraph level)
-                $color = $this->getTagColorByName($tag);
+                $color = TagColors::forTag($tag);
                 $tagStyle = Style::default()->fg(RgbColor::fromRgb(...$color));
 
                 $tagSpans[] = Span::styled("[{$tag}]", $tagStyle);
@@ -265,30 +251,5 @@ class Todo implements Arrayable
     public function getContext(): Context
     {
         return $this->context;
-    }
-
-    /**
-     * Get color for a specific tag based on its index.
-     *
-     * @param  int  $index  The index of the tag
-     * @return array RGB color array
-     */
-    protected function getTagColor(int $index): array
-    {
-        return self::TAG_COLORS[$index % count(self::TAG_COLORS)];
-    }
-
-    /**
-     * Generate a color for a tag based on its name hash.
-     *
-     * @param  string  $tag  The tag name
-     * @return array RGB color array
-     */
-    protected function getTagColorByName(string $tag): array
-    {
-        $hash = crc32($tag);
-        $index = abs($hash) % count(self::TAG_COLORS);
-
-        return self::TAG_COLORS[$index];
     }
 }

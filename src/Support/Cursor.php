@@ -23,6 +23,14 @@ class Cursor
     public function __construct(protected int $index, protected int $page) {}
 
     /**
+     * Create a cursor with no active selection.
+     */
+    public static function inactive(): self
+    {
+        return new self(self::INACTIVE, self::INITIAL_PAGE);
+    }
+
+    /**
      * Get the current index.
      *
      * @return int The current cursor index, or INACTIVE if no item is selected

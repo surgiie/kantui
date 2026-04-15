@@ -24,11 +24,6 @@ class Context implements ContextInterface
     private const CONFIG_FILE_NAME = 'config.json';
 
     /**
-     * The filename for the data file.
-     */
-    private const DATA_FILE_NAME = 'data.json';
-
-    /**
      * The configuration for the context.
      */
     protected Collection $config;
@@ -183,9 +178,9 @@ class Context implements ContextInterface
             }
         }
 
-        if (! is_file($this->path(self::DATA_FILE_NAME))) {
+        if (! is_file($this->path(DataManager::DATA_FILE_NAME))) {
             $result = file_put_contents(
-                $this->path(self::DATA_FILE_NAME),
+                $this->path(DataManager::DATA_FILE_NAME),
                 json_encode(DataManager::defaultData(), JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR)
             );
 
