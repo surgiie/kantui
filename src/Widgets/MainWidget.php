@@ -75,11 +75,11 @@ class MainWidget implements AppWidget
         // Use appropriate cursor for each type
         $todoCursor = $this->activeType === TodoType::TODO
             ? $this->cursor
-            : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE);
+            : Cursor::inactive();
 
         $inProgressCursor = $this->activeType === TodoType::IN_PROGRESS
             ? $this->cursor
-            : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE);
+            : Cursor::inactive();
 
         $this->todos = $this->manager->getByType(TodoType::TODO, $todoCursor);
         $this->inProgress = $this->manager->getByType(TodoType::IN_PROGRESS, $inProgressCursor);
@@ -116,12 +116,12 @@ class MainWidget implements AppWidget
                         $this->manager->makeWidget(
                             TodoType::TODO,
                             $this->todos,
-                            $this->activeType === TodoType::TODO ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+                            $this->activeType === TodoType::TODO ? $this->cursor : Cursor::inactive()
                         ),
                         $this->manager->makeWidget(
                             TodoType::IN_PROGRESS,
                             $this->inProgress,
-                            $this->activeType === TodoType::IN_PROGRESS ? $this->cursor : new Cursor(Cursor::INACTIVE, Cursor::INITIAL_PAGE)
+                            $this->activeType === TodoType::IN_PROGRESS ? $this->cursor : Cursor::inactive()
                         ),
                     )
             );
@@ -303,6 +303,18 @@ class MainWidget implements AppWidget
     }
 
     /**
+     * Set the paginator for a given todo type.
+     */
+    protected function updatePaginatorForType(LengthAwarePaginator $paginator, TodoType $type): void
+    {
+        if ($type === TodoType::TODO) {
+            $this->todos = $paginator;
+        } else {
+            $this->inProgress = $paginator;
+        }
+    }
+
+    /**
      * Get the active items paginator based on the current active type.
      */
     protected function getActiveItems(): ?LengthAwarePaginator
@@ -343,8 +355,7 @@ class MainWidget implements AppWidget
             $nextPage = $this->cursor->nextPage();
             $this->cursor->setPage($nextPage)->setIndex(0);
             $paginator = $this->manager->getByType($this->activeType, $this->cursor);
-            $this->todos = $this->activeType === TodoType::TODO ? $paginator : $this->todos;
-            $this->inProgress = $this->activeType === TodoType::IN_PROGRESS ? $paginator : $this->inProgress;
+            $this->updatePaginatorForType($paginator, $this->activeType);
         }
     }
 
@@ -369,8 +380,7 @@ class MainWidget implements AppWidget
             $prevPage = $this->cursor->previousPage();
             $this->cursor->setPage($prevPage);
             $paginator = $this->manager->getByType($this->activeType, $this->cursor);
-            $this->todos = $this->activeType === TodoType::TODO ? $paginator : $this->todos;
-            $this->inProgress = $this->activeType === TodoType::IN_PROGRESS ? $paginator : $this->inProgress;
+            $this->updatePaginatorForType($paginator, $this->activeType);
             $this->cursor->setIndex($paginator->count() - 1);
         }
     }
@@ -413,11 +423,7 @@ class MainWidget implements AppWidget
             return;
         }
 
-        if ($newType === TodoType::TODO) {
-            $this->todos = $newPaginator;
-        } else {
-            $this->inProgress = $newPaginator;
-        }
+        $this->updatePaginatorForType($newPaginator, $newType);
     }
 
     /**
@@ -518,11 +524,7 @@ class MainWidget implements AppWidget
         $paginator = $this->manager->getByType($this->activeType, $this->cursor);
         $itemCount = $paginator->count();
 
-        if ($this->activeType === TodoType::TODO) {
-            $this->todos = $paginator;
-        } else {
-            $this->inProgress = $paginator;
-        }
+        $this->updatePaginatorForType($paginator, $this->activeType);
 
         // If current page is now empty
         if ($itemCount === 0) {
@@ -532,11 +534,7 @@ class MainWidget implements AppWidget
                 $this->cursor->setPage($previousPage);
                 $paginator = $this->manager->getByType($this->activeType, $this->cursor);
 
-                if ($this->activeType === TodoType::TODO) {
-                    $this->todos = $paginator;
-                } else {
-                    $this->inProgress = $paginator;
-                }
+                $this->updatePaginatorForType($paginator, $this->activeType);
 
                 $this->cursor->setIndex($paginator->count() - 1);
             } else {
