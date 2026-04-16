@@ -4,6 +4,9 @@ namespace Kantui\Widgets;
 
 use Carbon\Carbon;
 use Kantui\App;
+
+use function Kantui\array_to_string_list;
+
 use Kantui\Support\TagColors;
 use Kantui\Support\Todo;
 use PhpTui\Tui\Color\RgbColor;
@@ -37,7 +40,7 @@ class TodoDetailWidget extends OverlayWidget
      */
     protected function closeKeys(): array
     {
-        return ['i'];
+        return ['q'];
     }
 
     /**
@@ -49,7 +52,7 @@ class TodoDetailWidget extends OverlayWidget
 
         $detailBlock = BlockWidget::default()
             ->borders(Borders::ALL)
-            ->titles(Title::fromString('Todo Details - Press i or ESC to close'))
+            ->titles(Title::fromString('Todo Details - To close, press: ' . array_to_string_list([...$this->closeKeys(), ...['esc']])))
             ->style($this->style)
             ->widget(
                 ParagraphWidget::fromText($detailText)

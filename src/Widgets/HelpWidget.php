@@ -3,6 +3,9 @@
 namespace Kantui\Widgets;
 
 use Kantui\App;
+
+use function Kantui\array_to_string_list;
+
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
 use PhpTui\Tui\Style\Style;
@@ -66,7 +69,7 @@ class HelpWidget extends OverlayWidget
      */
     protected function closeKeys(): array
     {
-        return ['q', '?'];
+        return ['q'];
     }
 
     /**
@@ -78,7 +81,7 @@ class HelpWidget extends OverlayWidget
 
         $helpBlock = BlockWidget::default()
             ->borders(Borders::ALL)
-            ->titles(Title::fromString('Available Keybindings Help - Press ? or ESC to close'))
+            ->titles(Title::fromString('Available Keybindings Help - To close, press: ' . array_to_string_list([...$this->closeKeys(), ...['esc']])))
             ->style($this->style)
             ->widget(
                 ParagraphWidget::fromText(
