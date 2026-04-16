@@ -181,16 +181,6 @@ class DataManager implements DataManagerInterface
     }
 
     /**
-     * Get the active todo item index.
-     *
-     * @return int The index of the currently active todo in its collection
-     */
-    public function getActiveIndex(): int
-    {
-        return $this->activeIndex;
-    }
-
-    /**
      * Reposition active item by the given number of index counts.
      *
      * Moves the currently active todo item up or down in its list by

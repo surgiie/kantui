@@ -441,22 +441,6 @@ class MainWidget implements AppWidget
     }
 
     /**
-     * Get the cursor instance.
-     */
-    public function getCursor(): Cursor
-    {
-        return $this->cursor;
-    }
-
-    /**
-     * Get the active type.
-     */
-    public function getActiveType(): ?TodoType
-    {
-        return $this->activeType;
-    }
-
-    /**
      * Handle the delete todo action.
      */
     protected function handleDeleteTodo(): void

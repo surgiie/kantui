@@ -34,7 +34,8 @@
     "laravel/pint": "^1.25",
     "fakerphp/faker": "^1.24",
     "pestphp/pest": "^3.0",
-    "phpstan/phpstan": "^2.1"
+    "phpstan/phpstan": "^2.1",
+    "rector/rector": "^2.2"
   },
   "autoload-dev": {
     "psr-4": {
@@ -48,6 +49,8 @@
     "analyse": "phpstan analyse",
     "format": "pint",
     "format:test": "pint --test",
+    "refactor": "rector process",
+    "refactor:dry": "rector process --dry-run",
     "check": [
       "@format:test",
       "@analyse",
@@ -61,6 +64,8 @@
     "analyse": "Run static analysis with PHPStan",
     "format": "Format code with Laravel Pint",
     "format:test": "Check code formatting without making changes",
+    "refactor": "Apply Rector rules (dead code removal)",
+    "refactor:dry": "Preview Rector changes without applying them",
     "check": "Run all quality checks (format, analyse, test)"
   },
   "config": {

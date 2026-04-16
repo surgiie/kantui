@@ -237,8 +237,7 @@ class App
             return 0;
         }
 
-        $result = $action();
-        $action = null;
+        $action();
 
         return 0;
     }

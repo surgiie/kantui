@@ -3,12 +3,6 @@
 namespace Kantui\Widgets;
 
 use Kantui\App;
-use Kantui\Contracts\AppWidget;
-use Kantui\Widgets\Concerns\RendersAsDialog;
-use PhpTui\Term\Event\CharKeyEvent;
-use PhpTui\Term\Event\CodedKeyEvent;
-use PhpTui\Term\KeyCode;
-use PhpTui\Term\KeyModifiers;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
 use PhpTui\Tui\Style\Style;
@@ -18,9 +12,8 @@ use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 
-class HelpWidget implements AppWidget
+class HelpWidget extends OverlayWidget
 {
-    use RendersAsDialog;
     // Navigation bindings
     public const MOVE_DOWN = 'j or ↓';
 
@@ -62,15 +55,18 @@ class HelpWidget implements AppWidget
 
     private bool $showReorderBindings;
 
-    private Style $style;
-
-    private ?App $app;
-
     public function __construct(bool $showReorderBindings = true, ?Style $style = null, ?App $app = null)
     {
+        parent::__construct($style, $app);
         $this->showReorderBindings = $showReorderBindings;
-        $this->style = $style ?? Style::default();
-        $this->app = $app;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function closeKeys(): array
+    {
+        return ['q', '?'];
     }
 
     /**
@@ -91,49 +87,6 @@ class HelpWidget implements AppWidget
             );
 
         return $this->centeredDialog($helpBlock);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFooterText(): string
-    {
-        // No footer text for this widget, "q" is the only binding, we can put up by title.
-        return '';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handleCharKey(CharKeyEvent $event): callable|false|null
-    {
-        if ($event->modifiers !== KeyModifiers::NONE) {
-            return null;
-        }
-
-        // Close help on q or ?
-        if ($event->char === 'q' || $event->char === '?') {
-            if ($this->app !== null) {
-                $this->app->returnToMainWidget();
-            }
-        }
-
-        return false; // Continue event loop
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handleCodedKey(CodedKeyEvent $event): callable|false|null
-    {
-        // Close help on ESC
-        if ($event->code == KeyCode::Esc) {
-            if ($this->app !== null) {
-                $this->app->returnToMainWidget();
-            }
-        }
-
-        return false; // Continue event loop
     }
 
     /**
