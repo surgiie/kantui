@@ -4,14 +4,11 @@ namespace Kantui\Widgets;
 
 use Carbon\Carbon;
 use Kantui\App;
-use Kantui\Contracts\AppWidget;
+
+use function Kantui\array_to_string_list;
+
 use Kantui\Support\TagColors;
 use Kantui\Support\Todo;
-use Kantui\Widgets\Concerns\RendersAsDialog;
-use PhpTui\Term\Event\CharKeyEvent;
-use PhpTui\Term\Event\CodedKeyEvent;
-use PhpTui\Term\KeyCode;
-use PhpTui\Term\KeyModifiers;
 use PhpTui\Tui\Color\RgbColor;
 use PhpTui\Tui\Extension\Core\Widget\BlockWidget;
 use PhpTui\Tui\Extension\Core\Widget\ParagraphWidget;
@@ -24,27 +21,26 @@ use PhpTui\Tui\Widget\Borders;
 use PhpTui\Tui\Widget\HorizontalAlignment;
 use PhpTui\Tui\Widget\Widget;
 
-class TodoDetailWidget implements AppWidget
+class TodoDetailWidget extends OverlayWidget
 {
-    use RendersAsDialog;
-    /**
-     * RGB color constants.
-     */
     private const COLOR_WHITE = [255, 255, 255];
 
     private const COLOR_LABEL = [100, 150, 200];
 
     private Todo $todo;
 
-    private Style $style;
-
-    private ?App $app;
-
     public function __construct(Todo $todo, ?Style $style = null, ?App $app = null)
     {
+        parent::__construct($style, $app);
         $this->todo = $todo;
-        $this->style = $style ?? Style::default();
-        $this->app = $app;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function closeKeys(): array
+    {
+        return ['q'];
     }
 
     /**
@@ -56,7 +52,7 @@ class TodoDetailWidget implements AppWidget
 
         $detailBlock = BlockWidget::default()
             ->borders(Borders::ALL)
-            ->titles(Title::fromString('Todo Details - Press i or ESC to close'))
+            ->titles(Title::fromString('Todo Details - To close, press: ' . array_to_string_list([...$this->closeKeys(), ...['esc']])))
             ->style($this->style)
             ->widget(
                 ParagraphWidget::fromText($detailText)
@@ -64,48 +60,6 @@ class TodoDetailWidget implements AppWidget
             );
 
         return $this->centeredDialog($detailBlock);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFooterText(): string
-    {
-        return '';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handleCharKey(CharKeyEvent $event): callable|false|null
-    {
-        if ($event->modifiers !== KeyModifiers::NONE) {
-            return null;
-        }
-
-        // Close detail view on i
-        if ($event->char === 'i') {
-            if ($this->app !== null) {
-                $this->app->returnToMainWidget();
-            }
-        }
-
-        return false; // Continue event loop
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function handleCodedKey(CodedKeyEvent $event): callable|false|null
-    {
-        // Close detail view on ESC
-        if ($event->code == KeyCode::Esc) {
-            if ($this->app !== null) {
-                $this->app->returnToMainWidget();
-            }
-        }
-
-        return false; // Continue event loop
     }
 
     /**

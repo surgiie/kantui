@@ -27,14 +27,4 @@ class TagColors
 
         return self::PALETTE[$index];
     }
-
-    /**
-     * Get an RGB color by index, cycling through the palette.
-     *
-     * @return array RGB color array
-     */
-    public static function byIndex(int $index): array
-    {
-        return self::PALETTE[$index % count(self::PALETTE)];
-    }
 }

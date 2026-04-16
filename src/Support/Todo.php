@@ -3,7 +3,6 @@
 namespace Kantui\Support;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Arrayable;
 use Kantui\Support\Enums\TodoType;
 use Kantui\Support\Enums\TodoUrgency;
 use PhpTui\Tui\Color\RgbColor;
@@ -27,7 +26,7 @@ use PhpTui\Tui\Widget\Widget;
  * including its tags, description, urgency level, creation timestamp, and
  * the visual widget representation in the terminal UI with color-coded tag badges.
  */
-class Todo implements Arrayable
+class Todo
 {
     /**
      * RGB color constants.
@@ -222,25 +221,6 @@ class Todo implements Arrayable
             TodoUrgency::NORMAL => $style->fg(RgbColor::fromRgb(...self::COLOR_NORMAL)),
             TodoUrgency::LOW => $style->fg(RgbColor::fromRgb(...self::COLOR_LOW)),
         };
-    }
-
-    /**
-     * Convert the item to an array for serialization.
-     *
-     * Converts the todo object into an array format suitable for JSON
-     * serialization and storage in the data file.
-     *
-     * @return array The todo data as an associative array
-     */
-    public function toArray(): array
-    {
-        return [
-            'type' => $this->type,
-            'tags' => $this->tags,
-            'description' => $this->description,
-            'urgency' => $this->urgency->value,
-            'created_at' => $this->created_at,
-        ];
     }
 
     /**

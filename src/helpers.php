@@ -92,3 +92,37 @@ if (! function_exists('dd')) {
         exit(1);
     }
 }
+
+if (! function_exists('array_to_string_list')) {
+    /** Convert an array to a list separated by a separator and optional oxford comma.**/
+    function array_to_string_list(
+        array $items,
+        string $conjunction = 'or',
+        bool $oxfordComma = true,
+        string $separator = ', '
+    ): string {
+        $count = count($items);
+
+        if ($count === 0) {
+            return '';
+        }
+
+        if ($count === 1) {
+            return $items[0];
+        }
+
+        if ($count === 2) {
+            return $items[0] . " $conjunction " . $items[1];
+        }
+
+        $last = array_pop($items);
+
+        $list = implode($separator, $items);
+
+        if ($oxfordComma) {
+            return $list . $separator . $conjunction . ' ' . $last;
+        }
+
+        return $list . ' ' . $conjunction . ' ' . $last;
+    }
+}

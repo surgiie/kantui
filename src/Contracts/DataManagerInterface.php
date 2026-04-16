@@ -32,13 +32,6 @@ interface DataManagerInterface
     public function getLastPageItems(TodoType $type): LengthAwarePaginator;
 
     /**
-     * Get the active todo item index.
-     *
-     * @return int The index of the currently active todo in its collection
-     */
-    public function getActiveIndex(): int;
-
-    /**
      * Reposition active item by the given number of index counts.
      *
      * @param  int  $offset  The number of positions to move
