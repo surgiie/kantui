@@ -198,7 +198,6 @@ class DataManager implements DataManagerInterface
         $type = $activeTodo->type->value;
         $typeTodos = &$this->todos[$type];
 
-        // Use cached index for faster lookup
         $currentIndex = $this->findTodoIndex($activeTodo->id, $type);
 
         if ($currentIndex === false) {
@@ -210,10 +209,8 @@ class DataManager implements DataManagerInterface
             return;
         }
 
-        // Swap the items
         [$typeTodos[$currentIndex], $typeTodos[$newIndex]] = [$typeTodos[$newIndex], $typeTodos[$currentIndex]];
 
-        // reindex the items array so we save new positions
         $this->todos[$type] = array_values($typeTodos);
         $this->activeIndex = $newIndex;
         $this->cacheNeedsRebuild = true;
@@ -331,7 +328,6 @@ class DataManager implements DataManagerInterface
 
         $todos = $this->todos[$type->value];
 
-        // Apply search and filter
         if (static::$searchFilter->isActive()) {
             $todos = array_filter($todos, fn ($todo) => static::$searchFilter->matches($todo));
         }
@@ -375,7 +371,6 @@ class DataManager implements DataManagerInterface
         $id = $todo->id;
         $type = $todo->type->value;
 
-        // Use cached index for faster lookup
         $index = $this->findTodoIndex($id, $type);
 
         if ($index === false) {
@@ -384,7 +379,6 @@ class DataManager implements DataManagerInterface
 
         unset($this->todos[$type][$index]);
 
-        // reindex the array
         $this->todos[$type] = array_values($this->todos[$type]);
 
         $this->cacheNeedsRebuild = true;
@@ -460,7 +454,7 @@ class DataManager implements DataManagerInterface
             }
         }
 
-        // insert an empty block widget to take up the remaining space if there are less than 2 todos.
+        // Insert an empty block to fill remaining space when fewer than 3 items are shown.
         if ($count <= 2) {
             $constraints[] = Constraint::percentage(100);
             $widgets[] = BlockWidget::default();

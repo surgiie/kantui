@@ -123,7 +123,6 @@ class HelpWidget extends OverlayWidget
             ],
         ];
 
-        // Add reordering section only if applicable
         if ($this->showReorderBindings) {
             $sections['ITEM REORDERING'] = [
                 self::MOVE_ITEM_UP => 'Move item up in list',

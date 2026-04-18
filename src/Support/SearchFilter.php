@@ -79,14 +79,12 @@ class SearchFilter
         $query = strtolower($this->searchQuery);
         $description = strtolower($todo->description);
 
-        // Check if query matches any tag
         foreach ($todo->tags as $tag) {
             if (str_contains(strtolower($tag), $query)) {
                 return true;
             }
         }
 
-        // Check description
         return str_contains($description, $query);
     }
 

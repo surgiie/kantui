@@ -72,7 +72,6 @@ class MainWidget implements AppWidget
      */
     protected function refreshData(): void
     {
-        // Use appropriate cursor for each type
         $todoCursor = $this->activeType === TodoType::TODO
             ? $this->cursor
             : Cursor::inactive();
@@ -244,7 +243,6 @@ class MainWidget implements AppWidget
         }
 
         if ($event->char === '?') {
-            // Toggle  help widget
             $app = App::getInstance();
             $searchFilter = $this->manager->getSearchFilter();
             $showReorderBindings = ! $searchFilter->isActive();
@@ -253,7 +251,6 @@ class MainWidget implements AppWidget
         }
 
         if ($event->char === 'i' && ! is_null($this->activeType)) {
-            // Show todo detail view
             $app = App::getInstance();
             $todo = $this->manager->getActiveTodo();
 
@@ -487,7 +484,6 @@ class MainWidget implements AppWidget
             return;
         }
 
-        // Move TODO items to IN_PROGRESS
         $targetType = TodoType::IN_PROGRESS;
 
         $this->manager->move($todo, $targetType);

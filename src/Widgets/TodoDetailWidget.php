@@ -71,7 +71,6 @@ class TodoDetailWidget extends OverlayWidget
         $labelStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_LABEL));
         $valueStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
 
-        // Add top padding
         $lines[] = Line::fromString('');
 
         // Urgency

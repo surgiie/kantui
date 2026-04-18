@@ -100,7 +100,6 @@ class Todo
 
         $createdAt = Carbon::parse($this->created_at)->setTimezone($this->context->getTimezone());
 
-        // Build text content with styled tag badges
         $contentText = $this->buildContentText($active, $style);
 
         // Create a background-only style for the content paragraph (no foreground to preserve span colors)
@@ -158,21 +157,18 @@ class Todo
         $descriptionStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
         $cleanDescription = trim(preg_replace('/\s+/', ' ', $this->description));
 
-        // Truncate description if it exceeds max length
         if (mb_strlen($cleanDescription) > self::MAX_DESCRIPTION_LENGTH) {
             $cleanDescription = mb_substr($cleanDescription, 0, self::MAX_DESCRIPTION_LENGTH - 3) . '...';
         }
 
         $lines[] = Line::fromSpans(Span::styled($cleanDescription, $descriptionStyle));
 
-        // Add empty line for spacing
         $emptyStyle = Style::default();
         $lines[] = Line::fromSpans(Span::styled('', $emptyStyle));
 
-        // Third line: styled tag badges with "Tags: " prefix
+        // Tag badges
         $tagSpans = [];
 
-        // Add "Tags: " prefix (no background, applied at paragraph level)
         $prefixStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
         $tagSpans[] = Span::styled('Tags: ', $prefixStyle);
 
@@ -181,7 +177,6 @@ class Todo
             $tagSpans[] = Span::styled('[No Tags]', $noTagsStyle);
         } else {
             foreach ($this->tags as $index => $tag) {
-                // Add space between tags
                 if ($index > 0) {
                     $spaceStyle = Style::default()->fg(RgbColor::fromRgb(...self::COLOR_WHITE));
                     $tagSpans[] = Span::styled(' ', $spaceStyle);

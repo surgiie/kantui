@@ -163,7 +163,6 @@ class App
     {
         $this->manager = new DataManager($this->context);
 
-        // Initialize the main widget (this is the main todo/in progress home view)
         $this->mainWidget = new MainWidget(
             $this->manager,
             $this->context,
@@ -209,12 +208,11 @@ class App
                 }
 
                 if ($event instanceof MouseEvent) {
-                    // Ignore mouse events
                     $result = false;
                 }
 
                 if ($result === false) {
-                    continue; // Event not handled, ignore
+                    continue;
                 }
 
                 // Handle the result, null means widget decided app should quit.
