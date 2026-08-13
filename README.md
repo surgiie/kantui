@@ -1,5 +1,7 @@
 # kantui
 
+> **⚠️ Abandoned:** This project is no longer maintained. Please use [surgiie/nvim-kanban](https://github.com/surgiie/nvim-kanban) instead.
+
 A minimal transparent php kanban TUI with vim-like keybindings.
 
 ![Tests](https://github.com/surgiie/kantui/actions/workflows/ci.yml/badge.svg)
